@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Font stacks as CSS variables */
+:root {
+  --font-sans-en: Cairo, "SF Arabic", Tajawal, "IBM Plex Sans Arabic",
+                  "Noto Sans Arabic", "Noto Naskh Arabic",
+                  "Geeza Pro", "Tahoma", "Segoe UI", Arial, sans-serif;
+  --font-sans-ar: Cairo, "SF Arabic", Tajawal, "IBM Plex Sans Arabic",
+                  "Noto Sans Arabic", "Noto Naskh Arabic",
+                  "Geeza Pro", "Tahoma", "Segoe UI", Arial, sans-serif;
+}
+
+@layer base {
+  html {
+    @apply font-sans antialiased text-slate-900;
+    font-size: 16px;
+    font-family: var(--font-sans-en);
+  }
+  html[lang="ar"] {
+    font-family: var(--font-sans-ar);
+    font-size: 15px;
+  }
+}
+
+
+.text-start { text-align: start; }
+.text-end   { text-align: end; }
+
+
+/* src/index.css (add after your @tailwind directives) */
+:root {
+  /* brand */
+  --brand: #E39B34;
+  --brand-50: #FEF6E8;
+  --brand-100: #fde9c9;
+
+  /* surface system */
+  --bg: #f8fafc;          /* slate-50-ish */
+  --card: #ffffff;
+  --muted: #f1f5f9;       /* slate-100 */
+  --border: #e2e8f0;      /* slate-200 */
+  --ring: #e9eef6;        /* soft ring */
+
+  /* text */
+  --text: #0f172a;        /* slate-900 */
+  --text-muted: #475569;  /* slate-600 */
+
+  /* states (desaturated) */
+  --ok: #16a34a;          /* green-600 */
+  --warn: #d97706;        /* amber-600 */
+  --info: #2563eb;        /* blue-600 */
+  --danger: #dc2626;      /* red-600 */
+
+  /* pastel backgrounds for chips/icons */
+  --ok-bg: #ecfdf5;       /* emerald-50 */
+  --warn-bg: #fffbeb;     /* amber-50 */
+  --info-bg: #eff6ff;     /* blue-50 */
+  --danger-bg: #fef2f2;   /* red-50 */
+  --neutral-bg: #f8fafc;  /* slate-50 */
+}
+
+html[lang="ar"] {
+  /* keep your font adjustments */
+}
