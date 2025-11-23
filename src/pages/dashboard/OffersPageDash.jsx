@@ -1,5 +1,6 @@
 // src/pages/owner/OffersPageDash.js
 import React, { useState, useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useOffers, useOfferForm } from '../../hooks/owner/useOffers';
 import ConfirmModal from '../../components/ui/ConfirmModal';
@@ -16,13 +17,14 @@ const OffersPageDash = () => {
     offers,
     stats,
     categories,
+    services,
+    servicesLoading,
     loading,
     error,
     createOffer,
     updateOffer,
     deleteOffer,
     toggleOfferActive,
-    fetchOfferCategories,
     getOfferStatus,
     clearError,
     isOwner,
@@ -79,18 +81,29 @@ const OffersPageDash = () => {
     return Number(price || 0).toFixed(2);
   };
 
-  // Initialize categories
-  useEffect(() => {
-    fetchOfferCategories();
-  }, [fetchOfferCategories]);
+  const servicesAvailable = services.length > 0;
+
+  const serviceMap = useMemo(() => {
+    const map = new Map();
+    services.forEach((service) => {
+      map.set(String(service.id), service);
+    });
+    return map;
+  }, [services]);
+
+  const getLinkedService = (offer) => {
+    if (!offer?.service_id) return null;
+    return serviceMap.get(String(offer.service_id));
+  };
 
   // Reset form when editing offer changes
   useEffect(() => {
-    if (editingOffer) {
-      setFormData({
-        title: editingOffer.title || '',
-        description: editingOffer.description || '',
-        category: editingOffer.category || '',
+      if (editingOffer) {
+        setFormData({
+          title: editingOffer.title || '',
+          description: editingOffer.description || '',
+          category: editingOffer.category || '',
+          service_id: editingOffer.service_id ? String(editingOffer.service_id) : '',
         discount_percentage: editingOffer.discount_percentage || '',
         discount_amount: editingOffer.discount_amount || '',
         original_price: editingOffer.original_price || '',
@@ -127,7 +140,14 @@ const OffersPageDash = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!validateForm()) {
+    const serviceValidationMsg = t('validation.selectService', 'Please select a service');
+
+    if (
+      !validateForm({
+        requireService: servicesAvailable,
+        serviceErrorMessage: serviceValidationMsg,
+      })
+    ) {
       pushToast({
         type: 'error',
         title: t('common.validationError', 'خطأ في التحقق'),
@@ -150,6 +170,7 @@ const OffersPageDash = () => {
       end_date: formData.end_date,
       terms_conditions: formData.terms_conditions || null,
       max_uses: formData.max_uses ? parseInt(formData.max_uses) : null,
+      service_id: formData.service_id || null,
       is_active: formData.is_active,
     };
 
@@ -298,7 +319,9 @@ const OffersPageDash = () => {
 
   // Calculate days remaining
   const getDaysRemaining = (endDate) => {
+    if (!endDate) return 0;
     const end = new Date(endDate);
+    if (Number.isNaN(end.getTime())) return 0;
     const today = new Date();
     const diffTime = end - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -307,9 +330,13 @@ const OffersPageDash = () => {
 
   // Calculate discount percentage if not provided
   const calculateDiscountPercentage = (offer) => {
-    if (offer.discount_percentage) return offer.discount_percentage;
-    if (offer.original_price && offer.final_price) {
-      return Math.round(((offer.original_price - offer.final_price) / offer.original_price) * 100);
+    if (offer.discount_percentage !== undefined && offer.discount_percentage !== null) {
+      return Math.round(Number(offer.discount_percentage));
+    }
+    const originalPrice = Number(offer.original_price);
+    const finalPrice = Number(offer.final_price);
+    if (originalPrice > 0 && !Number.isNaN(finalPrice)) {
+      return Math.round(((originalPrice - finalPrice) / originalPrice) * 100);
     }
     return 0;
   };
@@ -413,7 +440,7 @@ const OffersPageDash = () => {
             </div>
             <div className="p-6">
               <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     {t('offers.offerTitle', 'عنوان العرض')} *
@@ -448,6 +475,56 @@ const OffersPageDash = () => {
                       </option>
                     ))}
                   </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('offers.linkedService', 'الخدمة المرتبطة')} *
+                  </label>
+                  <select
+                    value={formData.service_id || ''}
+                    onChange={(e) => updateField('service_id', e.target.value)}
+                    onBlur={() => handleBlur('service_id')}
+                    className={`${formInputClass} appearance-none`}
+                    disabled={servicesLoading || services.length === 0}
+                  >
+                    <option value="">
+                      {servicesLoading
+                        ? t('offers.loadingServices', 'Loading services...')
+                        : services.length
+                          ? t('offers.selectService', 'اختر خدمة')
+                          : t('offers.noServices', 'لا توجد خدمات')}
+                    </option>
+                    {services.map((service) => {
+                      const meta = [];
+                      if (service.duration_minutes) {
+                        meta.push(`${service.duration_minutes} ${t('common.minutes', 'minutes')}`);
+                      }
+                      if (service.price !== undefined && service.price !== null) {
+                        meta.push(`${formatPrice(service.price)} ${t('common.currency', 'SAR')}`);
+                      }
+                      return (
+                        <option key={service.id} value={String(service.id)}>
+                          {[service.name, ...meta].filter(Boolean).join(' · ')}
+                        </option>
+                      );
+                    })}
+                  </select>
+                  {formErrors.service_id && touched.service_id && (
+                    <p className="text-red-600 text-sm mt-1">{formErrors.service_id}</p>
+                  )}
+                  {!servicesLoading && services.length === 0 && (
+                    <p className="mt-2 text-xs text-yellow-700">
+                      {t('offers.serviceRequired', 'أضف خدمة لتتمكن من ربط العرض')}
+                      {' '}
+                      <Link
+                        to="/dashboard/pricing"
+                        className="text-[#E39B34] font-semibold underline underline-offset-2"
+                      >
+                        {t('pricing.actions.addService', 'Add New Service')}
+                      </Link>
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -751,6 +828,7 @@ const OffersPageDash = () => {
                 const discountPercentage = calculateDiscountPercentage(offer);
                 const daysRemaining = getDaysRemaining(offer.end_date);
                 const status = getEnhancedOfferStatus(offer);
+                const linkedService = getLinkedService(offer);
 
                 return (
                   <div
@@ -783,12 +861,46 @@ const OffersPageDash = () => {
                       </div>
                     </div>
 
+                    {/* Service info */}
+                    {linkedService ? (
+                      <div className="mb-4 flex items-center justify-between rounded-lg border border-slate-100 bg-slate-50/70 px-4 py-3">
+                        <div>
+                          <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                            {t('common.service', 'Service')}
+                          </p>
+                          <p className="text-sm font-semibold text-slate-900">
+                            {linkedService.name}
+                          </p>
+                        </div>
+                        <div className="text-right text-xs text-slate-500 space-y-1">
+                          {linkedService.duration_minutes && (
+                            <p>
+                              {linkedService.duration_minutes} {t('common.minutes', 'minutes')}
+                            </p>
+                          )}
+                          {linkedService.price !== undefined && linkedService.price !== null && (
+                            <p className="flex items-center justify-end gap-1 text-slate-600">
+                              <RiyalIcon size={12} />
+                              {formatPrice(linkedService.price)}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      offer.service_id && !servicesLoading && (
+                        <div className="mb-4 rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2 text-xs text-yellow-700">
+                          {t('offers.missingService', 'الخدمة المرتبطة لم تعد متوفرة')}
+                        </div>
+                      )
+                    )}
+
                     {/* Description */}
                     {offer.description && (
                       <p className="text-gray-600 text-sm mb-4 leading-relaxed">
                         {offer.description}
                       </p>
                     )}
+
 
                     {/* Details */}
                     <div className="space-y-3 mb-4 text-sm">

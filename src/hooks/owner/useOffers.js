@@ -9,21 +9,23 @@ export const useOffers = () => {
   const [error, setError] = useState(null);
   const [stats, setStats] = useState(null);
   const [categories, setCategories] = useState([]);
+  const [services, setServices] = useState([]);
+  const [servicesLoading, setServicesLoading] = useState(false);
   
   const { user, logout, isAuthenticated } = useAuth();
 
   // Base API configuration
   const OFFERS_API_BASE = `${API_BASE}/api/owner/offers`;
 
-  const getAuthHeaders = () => {
+  const getAuthHeaders = useCallback(() => {
     const token = localStorage.getItem('auth_token');
     return {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
     };
-  };
+  }, []);
 
-  const handleApiError = (error, defaultMessage = 'An error occurred') => {
+  const handleApiError = useCallback((error, defaultMessage = 'An error occurred') => {
     console.error('API Error:', error);
     
     // Handle authentication errors
@@ -39,18 +41,18 @@ export const useOffers = () => {
     const errorMessage = error.details || error.error || defaultMessage;
     setError(errorMessage);
     return { ok: false, error: errorMessage };
-  };
+  }, [logout]);
 
   const clearError = () => setError(null);
 
   // Check if user is authenticated before making API calls
-  const checkAuth = () => {
+  const checkAuth = useCallback(() => {
     if (!isAuthenticated() || !user) {
       setError('Please log in to manage offers');
       return false;
     }
     return true;
-  };
+  }, [isAuthenticated, user]);
 
   // Fetch all offers
   const fetchOffers = useCallback(async () => {
@@ -83,7 +85,7 @@ export const useOffers = () => {
     } finally {
       setLoading(false);
     }
-  }, [user, isAuthenticated]);
+  }, [OFFERS_API_BASE, checkAuth, getAuthHeaders, handleApiError, logout]);
 
   // Fetch single offer by ID
   const fetchOfferById = useCallback(async (offerId) => {
@@ -119,7 +121,94 @@ export const useOffers = () => {
     } finally {
       setLoading(false);
     }
-  }, [user, isAuthenticated]);
+  }, [OFFERS_API_BASE, checkAuth, getAuthHeaders, handleApiError, logout]);
+
+  // Fetch offers statistics
+  const fetchOffersStats = useCallback(async () => {
+    if (!checkAuth()) return;
+
+    try {
+      const response = await fetch(`${OFFERS_API_BASE}/stats/summary`, {
+        headers: getAuthHeaders(),
+        credentials: 'include',
+      });
+
+      if (response.status === 401) {
+        logout();
+        return handleApiError({ error: 'UNAUTHORIZED' });
+      }
+
+      const result = await response.json();
+
+      if (!result.ok) {
+        return handleApiError(result, 'Failed to fetch statistics');
+      }
+
+      setStats(result.stats || {});
+      return result;
+    } catch (err) {
+      return handleApiError(err, 'Network error while fetching statistics');
+    }
+  }, [OFFERS_API_BASE, checkAuth, getAuthHeaders, handleApiError, logout]);
+
+  // Fetch offer categories
+  const fetchOfferCategories = useCallback(async () => {
+    if (!checkAuth()) return;
+
+    try {
+      const response = await fetch(`${OFFERS_API_BASE}/categories`, {
+        headers: getAuthHeaders(),
+        credentials: 'include',
+      });
+
+      if (response.status === 401) {
+        logout();
+        return handleApiError({ error: 'UNAUTHORIZED' });
+      }
+
+      const result = await response.json();
+
+      if (!result.ok) {
+        return handleApiError(result, 'Failed to fetch categories');
+      }
+
+      setCategories(result.categories || []);
+      return result;
+    } catch (err) {
+      return handleApiError(err, 'Network error while fetching categories');
+    }
+  }, [OFFERS_API_BASE, checkAuth, getAuthHeaders, handleApiError, logout]);
+
+  // Fetch salon services (for linking offers)
+  const fetchServices = useCallback(async () => {
+    if (!checkAuth()) return;
+
+    setServicesLoading(true);
+    try {
+      const response = await fetch(`${API_BASE}/api/owner/services`, {
+        headers: getAuthHeaders(),
+        credentials: 'include',
+      });
+
+      if (response.status === 401) {
+        logout();
+        return handleApiError({ error: 'UNAUTHORIZED' });
+      }
+
+      const result = await response.json();
+
+      if (!result.ok) {
+        return handleApiError(result, 'Failed to fetch services');
+      }
+
+      setServices(result.services || []);
+      return result;
+    } catch (err) {
+      return handleApiError(err, 'Network error while fetching services');
+    } finally {
+      setServicesLoading(false);
+    }
+  }, [checkAuth, getAuthHeaders, handleApiError, logout]);
 
   // Create new offer
   const createOffer = useCallback(async (offerData) => {
@@ -149,13 +238,14 @@ export const useOffers = () => {
 
       // Update local state
       setOffers(prev => [result.offer, ...prev]);
+      void fetchOffersStats();
       return result;
     } catch (err) {
       return handleApiError(err, 'Network error while creating offer');
     } finally {
       setLoading(false);
     }
-  }, [user, isAuthenticated]);
+  }, [OFFERS_API_BASE, checkAuth, getAuthHeaders, handleApiError, logout, fetchOffersStats]);
 
   // Update existing offer
   const updateOffer = useCallback(async (offerId, updates) => {
@@ -193,13 +283,14 @@ export const useOffers = () => {
           offer.id === offerId ? result.offer : offer
         )
       );
+      void fetchOffersStats();
       return result;
     } catch (err) {
       return handleApiError(err, 'Network error while updating offer');
     } finally {
       setLoading(false);
     }
-  }, [user, isAuthenticated]);
+  }, [OFFERS_API_BASE, checkAuth, getAuthHeaders, handleApiError, logout, fetchOffersStats]);
 
   // Delete offer
   const deleteOffer = useCallback(async (offerId) => {
@@ -232,79 +323,14 @@ export const useOffers = () => {
 
       // Update local state
       setOffers(prev => prev.filter(offer => offer.id !== offerId));
+      void fetchOffersStats();
       return result;
     } catch (err) {
       return handleApiError(err, 'Network error while deleting offer');
     } finally {
       setLoading(false);
     }
-  }, [user, isAuthenticated]);
-
-  // Fetch offers statistics
-  const fetchOffersStats = useCallback(async () => {
-    if (!checkAuth()) return;
-
-    setLoading(true);
-    clearError();
-
-    try {
-      const response = await fetch(`${OFFERS_API_BASE}/stats/summary`, {
-        headers: getAuthHeaders(),
-        credentials: 'include',
-      });
-
-      if (response.status === 401) {
-        logout();
-        return handleApiError({ error: 'UNAUTHORIZED' });
-      }
-
-      const result = await response.json();
-
-      if (!result.ok) {
-        return handleApiError(result, 'Failed to fetch statistics');
-      }
-
-      setStats(result.stats);
-      return result;
-    } catch (err) {
-      return handleApiError(err, 'Network error while fetching statistics');
-    } finally {
-      setLoading(false);
-    }
-  }, [user, isAuthenticated]);
-
-  // Fetch offer categories
-  const fetchOfferCategories = useCallback(async () => {
-    if (!checkAuth()) return;
-
-    setLoading(true);
-    clearError();
-
-    try {
-      const response = await fetch(`${OFFERS_API_BASE}/categories`, {
-        headers: getAuthHeaders(),
-        credentials: 'include',
-      });
-
-      if (response.status === 401) {
-        logout();
-        return handleApiError({ error: 'UNAUTHORIZED' });
-      }
-
-      const result = await response.json();
-
-      if (!result.ok) {
-        return handleApiError(result, 'Failed to fetch categories');
-      }
-
-      setCategories(result.categories || []);
-      return result;
-    } catch (err) {
-      return handleApiError(err, 'Network error while fetching categories');
-    } finally {
-      setLoading(false);
-    }
-  }, [user, isAuthenticated]);
+  }, [OFFERS_API_BASE, checkAuth, getAuthHeaders, handleApiError, logout, fetchOffersStats]);
 
   // Toggle offer active status
   const toggleOfferActive = useCallback(async (offerId, currentStatus) => {
@@ -352,17 +378,27 @@ export const useOffers = () => {
     await Promise.all([
       fetchOffers(),
       fetchOffersStats(),
-      fetchOfferCategories()
+      fetchOfferCategories(),
+      fetchServices()
     ]);
-  }, [fetchOffers, fetchOffersStats, fetchOfferCategories]);
+  }, [fetchOffers, fetchOffersStats, fetchOfferCategories, fetchServices]);
 
   // Initialize with offers and categories
   useEffect(() => {
     if (user && isAuthenticated()) {
       fetchOffers();
+      fetchOffersStats();
       fetchOfferCategories();
+      fetchServices();
     }
-  }, [user, isAuthenticated, fetchOffers, fetchOfferCategories]);
+  }, [
+    user,
+    isAuthenticated,
+    fetchOffers,
+    fetchOffersStats,
+    fetchOfferCategories,
+    fetchServices,
+  ]);
 
   return {
     // State
@@ -371,6 +407,8 @@ export const useOffers = () => {
     error,
     stats,
     categories,
+    services,
+    servicesLoading,
     
     // Actions
     fetchOffers,
@@ -380,6 +418,7 @@ export const useOffers = () => {
     deleteOffer,
     fetchOffersStats,
     fetchOfferCategories,
+    fetchServices,
     toggleOfferActive,
     refreshAll,
     
@@ -408,6 +447,7 @@ export const useOfferForm = (existingOffer = null) => {
     title: existingOffer?.title || '',
     description: existingOffer?.description || '',
     category: existingOffer?.category || '',
+    service_id: existingOffer?.service_id || '',
     discount_percentage: existingOffer?.discount_percentage || '',
     discount_amount: existingOffer?.discount_amount || '',
     original_price: existingOffer?.original_price || '',
@@ -474,6 +514,11 @@ export const useOfferForm = (existingOffer = null) => {
           fieldErrors.max_uses = 'Max uses cannot be negative';
         }
         break;
+      case 'service_id':
+        if (!value) {
+          fieldErrors.service_id = 'Please select a service';
+        }
+        break;
       default:
         break;
     }
@@ -482,8 +527,9 @@ export const useOfferForm = (existingOffer = null) => {
     return Object.keys(fieldErrors).length === 0;
   }, []);
 
-  const validateForm = useCallback(() => {
+  const validateForm = useCallback((options = {}) => {
     const newErrors = {};
+    const { requireService = false, serviceErrorMessage = 'Please select a service' } = options;
     
     // Required fields
     if (!formData.title.trim()) newErrors.title = 'Title is required';
@@ -506,6 +552,9 @@ export const useOfferForm = (existingOffer = null) => {
       newErrors.discount_amount = 'Cannot have both discount percentage and amount';
     }
     
+    if (requireService && !formData.service_id) {
+      newErrors.service_id = serviceErrorMessage;
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   }, [formData]);
@@ -515,6 +564,7 @@ export const useOfferForm = (existingOffer = null) => {
       title: '',
       description: '',
       category: '',
+      service_id: '',
       discount_percentage: '',
       discount_amount: '',
       original_price: '',

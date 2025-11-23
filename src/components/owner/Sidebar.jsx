@@ -212,6 +212,13 @@ export default function Sidebar() {
       ],
     },
     {
+      key: "sidebar.contacts",
+      icon: Icon.Users,
+      sub: [
+        { key: "sidebar.contactInbox", path: "/dashboard/contacts" },
+      ],
+    },
+    {
       key: "sidebar.services",
       icon: Icon.Scissors,
       sub: [

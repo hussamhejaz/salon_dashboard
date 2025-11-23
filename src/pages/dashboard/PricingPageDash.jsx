@@ -12,6 +12,7 @@ export default function PricingPage() {
 
   const [sections, setSections] = useState([]);
   const [services, setServices] = useState([]);
+  const [offers, setOffers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [creatingService, setCreatingService] = useState(false);
   const [updatingService, setUpdatingService] = useState(null);
@@ -39,13 +40,58 @@ export default function PricingPage() {
     return [...serviceSlots].sort((a, b) => a.slot_time.localeCompare(b.slot_time));
   }, [serviceSlots]);
 
+  const serviceOfferMap = useMemo(() => {
+    const map = new Map();
+    const now = Date.now();
+    offers.forEach((offer) => {
+      const serviceId = offer?.service_id ? String(offer.service_id) : null;
+      if (!serviceId) return;
+      if (!offer?.is_active) return;
+
+      const start = offer?.start_date ? Date.parse(offer.start_date) : null;
+      const end = offer?.end_date ? Date.parse(offer.end_date) : null;
+      if ((start && now < start) || (end && now > end)) return;
+
+      const candidateFinal = Number(offer.final_price ?? offer.original_price ?? 0);
+      const prev = map.get(serviceId);
+      if (!prev) {
+        map.set(serviceId, offer);
+      } else {
+        const prevFinal = Number(prev.final_price ?? prev.original_price ?? 0);
+        if (Number.isFinite(candidateFinal) && candidateFinal < prevFinal) {
+          map.set(serviceId, offer);
+        }
+      }
+    });
+    return map;
+  }, [offers]);
+
+  const getEffectivePrice = useCallback(
+    (service) => {
+      const offer = serviceOfferMap.get(String(service.id));
+      const rawValue = offer?.final_price ?? service.price ?? 0;
+      const numericValue = Number(rawValue);
+      if (Number.isNaN(numericValue)) return 0;
+      return numericValue;
+    },
+    [serviceOfferMap]
+  );
+
+  const formatPrice = useCallback((value) => {
+    const parsed = Number(value);
+    if (Number.isNaN(parsed)) return "0.00";
+    return parsed.toFixed(2);
+  }, []);
+
   const heroHighlights = useMemo(() => {
     const totalServices = services.length;
     const totalSections = sections.length;
     const activeServices = services.filter((s) => s.is_active).length;
     const avgPrice =
       totalServices > 0
-        ? Math.round(services.reduce((sum, s) => sum + parseFloat(s.price || 0), 0) / totalServices)
+        ? Math.round(
+            services.reduce((sum, s) => sum + getEffectivePrice(s), 0) / totalServices
+          )
         : 0;
 
     return [
@@ -75,7 +121,7 @@ export default function PricingPage() {
         hint: t("pricing.stats.avgPriceHint", "Per service"),
       },
     ];
-  }, [services, sections, t]);
+  }, [services, sections, t, getEffectivePrice]);
 
   const getAuthHeaders = useCallback(() => {
     const token = localStorage.getItem("auth_token");
@@ -95,6 +141,13 @@ export default function PricingPage() {
       const servicesRes = await fetch(`${API_BASE}/api/owner/services`, { headers: getAuthHeaders() });
       const servicesData = await servicesRes.json();
       if (servicesData.ok) setServices(servicesData.services || []);
+      const offersRes = await fetch(`${API_BASE}/api/owner/offers`, { headers: getAuthHeaders() });
+      const offersData = await offersRes.json();
+      if (offersData.ok) {
+        setOffers(offersData.offers || []);
+      } else {
+        setOffers([]);
+      }
     } catch (error) {
       console.error("Failed to load pricing data", error);
       pushToast({ type: "error", title: t("pricing.errors.fetchFailed") });
@@ -652,72 +705,86 @@ export default function PricingPage() {
                 {section?.subtitle && <p className="mt-1 text-sm text-slate-600">{section.subtitle}</p>}
               </div>
               <div className="divide-y divide-white/60">
-                {sectionServices.map((service) => (
-                  <div key={service.id} className="p-6 hover:bg-white/80 transition">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <h4 className="text-lg font-semibold text-slate-900">{service.name}</h4>
-                        {service.description && (
-                          <p className="mt-1 text-sm text-slate-600">{service.description}</p>
-                        )}
-                        {service.service_features && service.service_features.length > 0 && (
-                          <div className="mt-3 flex flex-wrap gap-2">
-                            {service.service_features.map((feature, index) => (
-                              <div
-                                key={index}
-                                className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${
-                                  feature.is_checked
-                                    ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
-                                    : "border border-slate-200 bg-slate-50 text-slate-600"
-                                }`}
-                              >
-                                <span
-                                  className={`h-2 w-2 rounded-full ${
-                                    feature.is_checked ? "bg-emerald-500" : "bg-slate-400"
+                {sectionServices.map((service) => {
+                  const activeOffer = serviceOfferMap.get(String(service.id));
+                  const displayPrice = getEffectivePrice(service);
+                  const basePrice = Number(service.price ?? 0);
+                  const originalPrice = Number(activeOffer?.original_price ?? basePrice);
+                  const shouldShowStrike =
+                    Boolean(activeOffer) && originalPrice > 0 && originalPrice > displayPrice;
+                  return (
+                    <div key={service.id} className="p-6 hover:bg-white/80 transition">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <h4 className="text-lg font-semibold text-slate-900">{service.name}</h4>
+                          {service.description && (
+                            <p className="mt-1 text-sm text-slate-600">{service.description}</p>
+                          )}
+                          {service.service_features && service.service_features.length > 0 && (
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              {service.service_features.map((feature, index) => (
+                                <div
+                                  key={index}
+                                  className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${
+                                    feature.is_checked
+                                      ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
+                                      : "border border-slate-200 bg-slate-50 text-slate-600"
                                   }`}
-                                />
-                                {feature.name}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      <div className={`text-right ${i18n.dir() === "rtl" ? "text-left" : "text-right"}`}>
-                        <div className="inline-flex items-center gap-1 text-2xl font-bold text-[#E39B34]">
-                          <RiyalIcon size={20} />
-                          {parseFloat(service.price).toFixed(2)}
+                                >
+                                  <span
+                                    className={`h-2 w-2 rounded-full ${
+                                      feature.is_checked ? "bg-emerald-500" : "bg-slate-400"
+                                    }`}
+                                  />
+                                  {feature.name}
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
-                        {service.duration_minutes && (
-                          <div className="text-sm text-slate-500">
-                            {service.duration_minutes} {t("pricing.table.min")}
+                        <div className={`text-right ${i18n.dir() === "rtl" ? "text-left" : "text-right"}`}>
+                          <div className="inline-flex items-center gap-1 text-2xl font-bold text-[#E39B34]">
+                            <RiyalIcon size={20} />
+                            {formatPrice(displayPrice)}
                           </div>
-                        )}
+                          {shouldShowStrike && (
+                            <div className="text-xs text-slate-500 line-through flex items-center justify-end gap-1">
+                              <RiyalIcon size={12} />
+                              {formatPrice(originalPrice)}
+                            </div>
+                          )}
+                          {service.duration_minutes && (
+                            <div className="text-sm text-slate-500">
+                              {service.duration_minutes} {t("pricing.table.min")}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="mt-4 flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => handleEditService(service)}
+                          disabled={updatingService === service.id}
+                          className="inline-flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 disabled:opacity-50"
+                        >
+                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                          {t("pricing.actions.edit")}
+                        </button>
+                        <button
+                          onClick={() => deleteService(service.id)}
+                          disabled={deletingService === service.id}
+                          className="inline-flex items-center gap-1.5 rounded-2xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-100 disabled:opacity-50"
+                        >
+                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          {deletingService === service.id ? t("pricing.errors.deleting") : t("pricing.actions.delete")}
+                        </button>
                       </div>
                     </div>
-                    <div className="mt-4 flex items-center justify-end gap-2">
-                      <button
-                        onClick={() => handleEditService(service)}
-                        disabled={updatingService === service.id}
-                        className="inline-flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 disabled:opacity-50"
-                      >
-                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                        {t("pricing.actions.edit")}
-                      </button>
-                      <button
-                        onClick={() => deleteService(service.id)}
-                        disabled={deletingService === service.id}
-                        className="inline-flex items-center gap-1.5 rounded-2xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-100 disabled:opacity-50"
-                      >
-                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                        {deletingService === service.id ? t("pricing.errors.deleting") : t("pricing.actions.delete")}
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           ))

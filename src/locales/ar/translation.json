@@ -296,6 +296,8 @@
     "homeServiceAppointments": "حجوزات الخدمات المنزلية",
     "homeServiceBookings": "عرض الحجوزات",
     "newHomeServiceBooking": "حجز جديد",
+    "contacts": "رسائل العملاء",
+    "contactInbox": "صندوق الرسائل",
     "services": "الخدمات والأقسام",
     "serviceList": "جميع الخدمات",
     "newService": "إضافة خدمة",
@@ -325,6 +327,57 @@
     "notifications": "الإشعارات",
     "languageToggle": "تغيير اللغة",
     "signout": "تسجيل الخروج"
+  },
+
+  "contacts": {
+    "tag": "صندوق الرسائل",
+    "title": "رسائل الاتصال",
+    "subtitle": "راجع الاستفسارات الأخيرة ورد على العملاء الذين تواصلوا معك.",
+    "stats": {
+      "total": "إجمالي الرسائل",
+      "totalHint": "جميع الاستفسارات الواردة",
+      "new": "جديدة",
+      "newHint": "بانتظار المتابعة",
+      "responded": "تم الرد",
+      "respondedHint": "تم التعامل معها",
+      "other": "بحاجة لمتابعة",
+      "otherHint": "تحتاج تصنيف"
+    },
+    "filters": {
+      "searchLabel": "بحث في الرسائل",
+      "searchPlaceholder": "الاسم أو الرسالة…",
+      "statusLabel": "فرز حسب الحالة",
+      "statusAny": "كل الحالات",
+      "limitLabel": "النتائج لكل صفحة"
+    },
+    "actions": {
+      "refresh": "تحديث القائمة"
+    },
+    "table": {
+      "name": "العميل",
+      "contactInfo": "بيانات التواصل",
+      "message": "الرسالة",
+      "status": "الحالة",
+      "received": "تاريخ الاستلام",
+      "statusPlaceholder": "تحديد الحالة",
+      "updatedAt": "تحديث"
+    },
+    "list": {
+      "empty": "لا توجد رسائل حالياً، ستظهر الرسائل الجديدة هنا."
+    },
+    "pagination": {
+      "summary": "عرض {{start}}-{{end}} من {{total}}",
+      "next": "التالي",
+      "previous": "السابق",
+      "page": "صفحة",
+      "of": "من"
+    },
+    "toast": {
+      "statusUpdated": "تم تحديث الحالة",
+      "statusUpdatedHint": "تم حفظ حالة الرسالة.",
+      "updateFailed": "فشل التحديث",
+      "updateFailedHint": "يرجى المحاولة مرة أخرى."
+    }
   },
 
   "dashboard": {
@@ -1226,7 +1279,50 @@
     "error": {
       "title": "عذراً، حدث خطأ",
       "retry": "إعادة المحاولة"
-    }
+    },
+    "noServices": "لا توجد خدمات متاحة",
+    "addOffer": "إضافة عرض",
+    "editOffer": "تعديل العرض",
+    "addNewOffer": "إضافة عرض جديد",
+    "offerTitle": "عنوان العرض",
+    "titlePlaceholder": "مثال: عرض متألق للصيف",
+    "selectCategory": "اختر الفئة",
+    "description": "الوصف",
+    "descriptionPlaceholder": "وضح تفاصيل العرض أو الشروط...",
+    "originalPrice": "السعر الأصلي",
+    "discountPercentage": "نسبة الخصم (%)",
+    "discountAmount": "قيمة الخصم",
+    "finalPrice": "السعر النهائي",
+    "discountNote": "استخدم نسبة أو قيمة خصم فقط",
+    "startDate": "تاريخ البدء",
+    "endDate": "تاريخ الانتهاء",
+    "termsConditions": "الشروط والأحكام",
+    "termsPlaceholder": "أضف قواعد الحجز أو تفاصيل الاستخدام...",
+    "formValidationFailed": "يرجى مراجعة الحقول المطلوبة",
+    "offerUpdated": "تم تحديث العرض بنجاح",
+    "offerCreated": "تم إنشاء العرض بنجاح",
+    "offerDeleted": "تم حذف العرض بنجاح",
+    "updateFailed": "تعذر تحديث العرض الآن",
+    "createFailed": "تعذر إنشاء العرض الآن",
+    "deleteFailed": "تعذر حذف العرض الآن",
+    "statusChangeFailed": "تعذر تغيير حالة العرض",
+    "offerDeactivated": "تم إيقاف العرض",
+    "offerActivated": "تم تفعيل العرض",
+    "offersList": "قائمة العروض",
+    "noOffersDesc": "أنشئ عرضك الأول لتشارك العملاء بالأسعار الخاصة.",
+    "addFirstOffer": "أضف أول عرض",
+    "linkedService": "الخدمة المرتبطة",
+    "loadingServices": "جاري تحميل الخدمات...",
+    "serviceRequired": "اضبط خدمة مرتبطة قبل نشر العرض.",
+    "missingService": "الخدمة المرتبطة لم تعد متاحة",
+    "price": "السعر",
+    "endsIn": "ينتهي خلال",
+    "days": "أيام",
+    "usage": "الاستخدام",
+    "deactivate": "إيقاف",
+    "activate": "تفعيل",
+    "confirmDeleteTitle": "تأكيد الحذف",
+    "confirmDelete": "هل أنت متأكد أنك تريد حذف هذا العرض؟ لا يمكن التراجع عن هذه الخطوة."
   },
 
   "pricing": {

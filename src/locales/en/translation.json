@@ -282,6 +282,8 @@
     "homeServiceAppointments": "Home Service Appointments",
     "homeServiceBookings": "View Bookings",
     "newHomeServiceBooking": "New Booking",
+    "contacts": "Client Messages",
+    "contactInbox": "Contact Inbox",
 
     "services": "Services & Categories",
     "serviceList": "All Services",
@@ -312,6 +314,57 @@
   "notifications": "Notifications",
   "languageToggle": "Change Language",
   "signout": "Sign Out"
+  },
+
+  "contacts": {
+    "tag": "Client Inbox",
+    "title": "Contact Messages",
+    "subtitle": "Review recent inquiries and respond to customers who reached out.",
+    "stats": {
+      "total": "Total messages",
+      "totalHint": "All received inquiries",
+      "new": "New",
+      "newHint": "Awaiting review",
+      "responded": "Responded",
+      "respondedHint": "Already handled",
+      "other": "Needs attention",
+      "otherHint": "Requires triage"
+    },
+    "filters": {
+      "searchLabel": "Search messages",
+      "searchPlaceholder": "Name or message…",
+      "statusLabel": "Filter by status",
+      "statusAny": "Any status",
+      "limitLabel": "Items per page"
+    },
+    "actions": {
+      "refresh": "Refresh list"
+    },
+    "table": {
+      "name": "Customer",
+      "contactInfo": "Contact",
+      "message": "Message",
+      "status": "Status",
+      "received": "Received",
+      "statusPlaceholder": "Set status",
+      "updatedAt": "Updated"
+    },
+    "list": {
+      "empty": "There are no messages yet. New client requests will appear here."
+    },
+    "pagination": {
+      "summary": "Showing {{start}}–{{end}} of {{total}}",
+      "next": "Next",
+      "previous": "Previous",
+      "page": "Page",
+      "of": "of"
+    },
+    "toast": {
+      "statusUpdated": "Status updated",
+      "statusUpdatedHint": "The message status was saved.",
+      "updateFailed": "Update failed",
+      "updateFailedHint": "Please try again."
+    }
   },
 
   "dashboard": {
@@ -1206,7 +1259,50 @@
     "error": {
       "title": "Sorry, an error occurred",
       "retry": "Try Again"
-    }
+    },
+    "noServices": "No services yet",
+    "addOffer": "Add offer",
+    "editOffer": "Edit offer",
+    "addNewOffer": "Add new offer",
+    "offerTitle": "Offer title",
+    "titlePlaceholder": "e.g., Summer glow deal",
+    "selectCategory": "Select a category",
+    "description": "Description",
+    "descriptionPlaceholder": "Describe the offer, perks, or limitations...",
+    "originalPrice": "Original price",
+    "discountPercentage": "Discount percentage (%)",
+    "discountAmount": "Discount amount",
+    "finalPrice": "Final price",
+    "discountNote": "Use either a percentage or fixed amount discount",
+    "startDate": "Start date",
+    "endDate": "End date",
+    "termsConditions": "Terms & Conditions",
+    "termsPlaceholder": "Add availability rules, use limits, or notes...",
+    "formValidationFailed": "Please review the highlighted fields",
+    "offerUpdated": "Offer updated successfully",
+    "offerCreated": "Offer created successfully",
+    "offerDeleted": "Offer deleted successfully",
+    "updateFailed": "Unable to update the offer right now",
+    "createFailed": "Unable to create the offer right now",
+    "deleteFailed": "Unable to delete the offer right now",
+    "statusChangeFailed": "Unable to change offer status",
+    "offerDeactivated": "Offer deactivated",
+    "offerActivated": "Offer activated",
+    "offersList": "Offers list",
+    "noOffersDesc": "Create your first offer to share special pricing with clients.",
+    "addFirstOffer": "Add your first offer",
+    "linkedService": "Linked service",
+    "loadingServices": "Loading services...",
+    "serviceRequired": "Attach a service before publishing this offer.",
+    "missingService": "The linked service is no longer available",
+    "price": "Price",
+    "endsIn": "Ends in",
+    "days": "days",
+    "usage": "Usage",
+    "deactivate": "Deactivate",
+    "activate": "Activate",
+    "confirmDeleteTitle": "Confirm deletion",
+    "confirmDelete": "Are you sure you want to delete this offer? This cannot be undone."
   },
 
   "pricing": {

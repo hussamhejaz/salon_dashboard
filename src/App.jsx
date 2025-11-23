@@ -18,10 +18,11 @@ import BookingControl from "./pages/dashboard/BookingControl";
 import HomeServiceBookings from "./pages/dashboard/home-service-bookings";
 import CreateHomeServiceBooking from './pages/dashboard/CreateHomeServiceBooking';
 import ReviewsPage from './pages/dashboard/ReviewsPage';
+import ContactsPage from './pages/dashboard/ContactsPage';
 
 export default function App() {
   const { isAuthenticated, loading } = useAuth();
-
+  
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-900">
@@ -77,6 +78,7 @@ export default function App() {
         <Route path="home-service-bookings/create" element={<CreateHomeServiceBooking />} />
         <Route path="reviews" element={<ReviewsPage />} />
         <Route path="reviews/featured" element={<ReviewsPage featuredOnly />} />
+        <Route path="contacts" element={<ContactsPage />} />
       </Route>
 
       {/* ===== 404 fallback - redirect based on auth status ===== */}
