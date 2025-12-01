@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 const AuthContext = createContext();
 
 // eslint-disable-next-line react-refresh/only-export-components
-export  const useAuth = () => {
+export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
@@ -43,6 +43,9 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('currentUser');
     setUser(null);
+    setLoading(false);
+    // hard redirect to clear any in-flight state
+    window.location.replace('/login');
   };
 
   const isAuthenticated = !!user;
@@ -61,3 +64,5 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
+
+export default AuthProvider;
