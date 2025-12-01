@@ -24,7 +24,7 @@ export function useOwnerContacts() {
 
   const fetchContacts = useCallback(
     async ({ page = 1, limit = DEFAULT_LIMIT, status = "", search = "" } = {}) => {
-      if (!isAuthenticated()) {
+      if (!isAuthenticated) {
         const message = "AUTH_REQUIRED";
         setError("Please log in to view contact messages.");
         return { ok: false, error: message };
@@ -138,7 +138,7 @@ export function useOwnerContacts() {
         return { ok: false, error: "MISSING_CONTACT_ID" };
       }
 
-      if (!isAuthenticated()) {
+      if (!isAuthenticated) {
         const message = "Please log in to update contacts.";
         setError(message);
         return { ok: false, error: "AUTH_REQUIRED" };

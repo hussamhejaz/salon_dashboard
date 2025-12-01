@@ -38,8 +38,12 @@ export const useOwnerNotifications = ({
       try {
         setLoading(true);
         setError('');
-
         const token = localStorage.getItem('auth_token');
+        if (!token) {
+          setLoading(false);
+          return { ok: false, error: 'NO_TOKEN' };
+        }
+
         const queryParams = new URLSearchParams({
           page: String(page),
           limit: String(limit),
@@ -103,6 +107,10 @@ export const useOwnerNotifications = ({
 
         const data = await response.json();
         if (!response.ok || !data.ok) {
+          if (response.status === 401) {
+            setLoading(false);
+            return { ok: false, error: 'UNAUTHORIZED' };
+          }
           throw new Error(
             data?.error ||
               data?.details ||
@@ -119,13 +127,20 @@ export const useOwnerNotifications = ({
         });
         setFilters((prev) => ({ ...prev, status, since }));
       } catch (err) {
+        // Suppress errors when unauthenticated or network is cancelled
+        if (err?.message === 'NO_TOKEN' || err?.message === 'UNAUTHORIZED') {
+          setLoading(false);
+          return { ok: false, error: err.message };
+        }
         const message = err.message || t('notifications.errors.fetch', 'Failed to load notifications');
         setError(message);
-        pushToast({
-          type: 'error',
-          title: t('common.error', 'Error'),
-          desc: message,
-        });
+        if (pushToast) {
+          pushToast({
+            type: 'error',
+            title: t('common.error', 'Error'),
+            desc: message,
+          });
+        }
       } finally {
         setLoading(false);
       }

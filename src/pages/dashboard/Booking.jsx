@@ -28,11 +28,9 @@ const Booking = () => {
     changePage,
     getTodaysBookings,
     getUpcomingBookings,
-    getBookingById,
+    // getBookingById,
     autoRefresh,
     setAutoRefresh,
-    archiveBooking,
-    unarchiveBooking,
   } = useBookingDashboard();
 
   const [editingBooking, setEditingBooking] = useState(null);
@@ -43,13 +41,10 @@ const Booking = () => {
       const result = await updateBooking(bookingId, { status: newStatus });
       if (result?.success) {
         fetchBookings(pagination.page);
-        if (newStatus === 'completed') {
-          await archiveBooking(bookingId);
-        }
       }
       return result;
     },
-    [updateBooking, fetchBookings, pagination.page, archiveBooking]
+    [updateBooking, fetchBookings, pagination.page]
   );
 
   const handleDeleteBooking = useCallback(
@@ -66,6 +61,29 @@ const Booking = () => {
       return result;
     },
     [deleteBooking, bookings.length, pagination.page, fetchBookings, changePage]
+  );
+
+  const handleArchive = useCallback(
+    async (bookingId) => {
+      // mark booking as archived; backend should handle the field name (archived) accordingly
+      const result = await updateBooking(bookingId, { archived: true });
+      if (result?.success) {
+        fetchBookings(pagination.page);
+      }
+      return result;
+    },
+    [updateBooking, fetchBookings, pagination.page]
+  );
+
+  const handleUnarchive = useCallback(
+    async (bookingId) => {
+      const result = await updateBooking(bookingId, { archived: false });
+      if (result?.success) {
+        fetchBookings(pagination.page);
+      }
+      return result;
+    },
+    [updateBooking, fetchBookings, pagination.page]
   );
 
   const handleEditBooking = useCallback((booking) => {
@@ -99,22 +117,6 @@ const Booking = () => {
       navigate(`/dashboard/booking/${bookingId}`, { replace: true });
     }
   }, [searchParams, navigate]);
-
-  const handleArchive = useCallback(
-    async (bookingId) => {
-      await archiveBooking(bookingId);
-      setBookingDetails((prev) => (prev && prev.id === bookingId ? { ...prev, archived: true } : prev));
-    },
-    [archiveBooking]
-  );
-
-  const handleUnarchive = useCallback(
-    async (bookingId) => {
-      await unarchiveBooking(bookingId);
-      setBookingDetails((prev) => (prev && prev.id === bookingId ? { ...prev, archived: false } : prev));
-    },
-    [unarchiveBooking]
-  );
 
   const paginationWindow = useMemo(() => {
     const total = pagination.pages || 1;

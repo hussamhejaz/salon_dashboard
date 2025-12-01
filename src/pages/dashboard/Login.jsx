@@ -38,7 +38,8 @@ export default function Login() {
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok || data.ok === false) {
-        throw new Error(data.error || "Login failed");
+        const detail = data?.error || data?.message || `HTTP ${res.status}`;
+        throw new Error(detail || "Login failed");
       }
 
       // Use the auth context to login

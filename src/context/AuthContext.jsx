@@ -5,7 +5,6 @@ const AuthContext = createContext();
 
 // eslint-disable-next-line react-refresh/only-export-components
 export  const useAuth = () => {
-    
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
@@ -44,12 +43,9 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('currentUser');
     setUser(null);
-    window.location.href = '/login';
   };
 
-  const isAuthenticated = () => {
-    return !!localStorage.getItem('auth_token');
-  };
+  const isAuthenticated = !!user;
 
   const value = {
     user,

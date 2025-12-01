@@ -27,6 +27,7 @@ import ContactsPage from './pages/dashboard/ContactsPage'
 
 export default function App() {
   const { isAuthenticated, loading } = useAuth();
+  const authed = isAuthenticated;
   
   if (loading) {
     return (
@@ -42,7 +43,7 @@ export default function App() {
       <Route 
         path="/" 
         element={
-          isAuthenticated() ? 
+          authed ? 
             <Navigate to="/dashboard" replace /> : 
             <Navigate to="/login" replace />
         } 
@@ -52,7 +53,7 @@ export default function App() {
       <Route 
         path="/login" 
         element={
-          isAuthenticated() ? 
+          authed ? 
             <Navigate to="/dashboard" replace /> : 
             <Login />
         } 
@@ -94,7 +95,7 @@ export default function App() {
       <Route
         path="*"
         element={
-          isAuthenticated() ? 
+          authed ? 
             <Navigate to="/dashboard" replace /> : 
             <Navigate to="/login" replace />
         }

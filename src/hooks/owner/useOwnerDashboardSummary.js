@@ -14,7 +14,9 @@ export function useOwnerDashboardSummary() {
 
       const token = localStorage.getItem("auth_token");
       if (!token) {
-        throw new Error("AUTH_REQUIRED");
+        setData(null);
+        setLoading(false);
+        return;
       }
 
       const response = await fetch(`${API_BASE}/api/owner/dashboard`, {
@@ -25,6 +27,13 @@ export function useOwnerDashboardSummary() {
       });
 
       const payload = await response.json().catch(() => ({}));
+
+      if (response.status === 401) {
+        setData(null);
+        setError("");
+        setLoading(false);
+        return;
+      }
 
       if (!response.ok || payload.ok === false) {
         const message = payload.error || `HTTP_ERROR_${response.status}`;
