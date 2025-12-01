@@ -1,6 +1,6 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 
 import { useHomeServiceBookings } from '../../hooks/owner/useHomeServiceBooking';
 import HomeServiceStats from '../../components/homeBooking/HomeServiceStats';
@@ -9,9 +9,11 @@ import HomeServiceGrid from '../../components/homeBooking/HomeServiceGrid';
 import BookingDetailsModal from '../../components/homeBooking/BookingDetailsModal';
 import EditHomeServiceBookingModal from '../../components/homeBooking/EditHomeServiceBookingModal';
 import RiyalIcon from '../../components/RiyalIcon';
+import BookingCalendar from '../../components/calendar/BookingCalendar';
 
 const HomeServiceBookings = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
+  const [searchParams] = useSearchParams();
 
   const {
     bookings,
@@ -43,16 +45,6 @@ const HomeServiceBookings = () => {
   const totalBookings = stats?.total_bookings || 0;
   const avgTravelFee = totalBookings > 0 ? travelFees / totalBookings : 0;
 
-  const currencyFormatter = useMemo(
-    () =>
-      new Intl.NumberFormat(i18n.language === 'ar' ? 'ar-EG' : 'en-SA', {
-        style: 'currency',
-        currency: 'SAR',
-        maximumFractionDigits: 0,
-      }),
-    [i18n.language]
-  );
-
   const heroHighlights = [
     {
       label: t('homeServiceBookings.hero.highlights.today', "Today's visits"),
@@ -69,7 +61,7 @@ const HomeServiceBookings = () => {
       value: (
         <span className="inline-flex items-center gap-2">
           <RiyalIcon size={18} className="text-slate-900" />
-          <span>{currencyFormatter.format(avgTravelFee || 0)}</span>
+          <span>{Math.round(avgTravelFee || 0)}</span>
         </span>
       ),
       hint: t('homeServiceBookings.hero.highlights.travelHint', 'Per completed booking'),
@@ -138,6 +130,22 @@ const HomeServiceBookings = () => {
     [getBookingById]
   );
 
+  useEffect(() => {
+    const homeBookingId = searchParams.get('homeBookingId');
+    if (!homeBookingId) return;
+    (async () => {
+      setLoadingDetails(true);
+      try {
+        const result = await getBookingById(homeBookingId);
+        if (result?.success && result.booking) {
+          setBookingDetails(result.booking);
+        }
+      } finally {
+        setLoadingDetails(false);
+      }
+    })();
+  }, [searchParams, getBookingById]);
+
   // Safe pagination window calculation
   const paginationWindow = useMemo(() => {
     const total = pagination.pages || 1;
@@ -187,7 +195,7 @@ const HomeServiceBookings = () => {
 
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center rounded-2xl border border-white/70 bg-white/70 p-1 shadow-sm">
-              {['grid', 'list'].map((mode) => (
+              {['grid', 'list', 'calendar'].map((mode) => (
                 <button
                   key={mode}
                   onClick={() => setViewMode(mode)}
@@ -201,12 +209,22 @@ const HomeServiceBookings = () => {
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h5v5H4zM4 13h5v5H4zM11 6h9v5h-9zM11 13h9v5h-9z" />
                     </svg>
-                  ) : (
+                  ) : mode === 'list' ? (
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                     </svg>
+                  ) : (
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
                   )}
-                  <span className="hidden sm:inline">{t(`common.${mode}`, mode === 'grid' ? 'Grid' : 'List')}</span>
+                  <span className="hidden sm:inline">
+                    {mode === 'grid'
+                      ? t('common.grid', 'Grid')
+                      : mode === 'list'
+                      ? t('common.list', 'List')
+                      : t('bookings.view.calendar', 'Calendar')}
+                  </span>
                 </button>
               ))}
             </div>
@@ -267,15 +285,19 @@ const HomeServiceBookings = () => {
         />
 
         <div className="p-6">
-          <HomeServiceGrid
-            bookings={bookings}
-            loading={loading}
-            viewMode={viewMode}
-            onStatusUpdate={handleStatusUpdate}
-            onSelectBooking={handleViewDetails}
-            onEditBooking={handleEditBooking}
-            onDeleteBooking={handleDeleteBooking}
-          />
+          {viewMode === 'calendar' ? (
+            <BookingCalendar bookings={bookings} loading={loading} onSelectBooking={handleViewDetails} />
+          ) : (
+            <HomeServiceGrid
+              bookings={bookings}
+              loading={loading}
+              viewMode={viewMode}
+              onStatusUpdate={handleStatusUpdate}
+              onSelectBooking={handleViewDetails}
+              onEditBooking={handleEditBooking}
+              onDeleteBooking={handleDeleteBooking}
+            />
+          )}
         </div>
 
         {pagination.pages > 1 && (

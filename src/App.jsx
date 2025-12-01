@@ -14,11 +14,16 @@ import OffersPageDash from './pages/dashboard/OffersPageDash';
 import PricingPageDash from './pages/dashboard/PricingPageDash';
 
 import CreateBooking from "./pages/dashboard/CreateBooking";
-import BookingControl from "./pages/dashboard/BookingControl";
+import Booking from "./pages/dashboard/Booking";
+import BookingDetailsPage from "./pages/dashboard/BookingDetailsPage";
+import ClientsPage from "./pages/dashboard/ClientsPage";
 import HomeServiceBookings from "./pages/dashboard/home-service-bookings";
+import NotificationsCenter from "./pages/dashboard/NotificationsCenter";
 import CreateHomeServiceBooking from './pages/dashboard/CreateHomeServiceBooking';
 import ReviewsPage from './pages/dashboard/ReviewsPage';
-import ContactsPage from './pages/dashboard/ContactsPage';
+import ContactsPage from './pages/dashboard/ContactsPage'
+
+
 
 export default function App() {
   const { isAuthenticated, loading } = useAuth();
@@ -73,13 +78,17 @@ export default function App() {
         
         <Route path="pricing" element={<PricingPageDash />} />
         <Route path="appointments/new" element={<CreateBooking/>} />
-        <Route path="booking" element={<BookingControl/>} />
+        <Route path="booking" element={<Booking/>} />
+        <Route path="booking/:bookingId" element={<BookingDetailsPage/>} />
+        <Route path="clients" element={<ClientsPage/>} />
+        <Route path="notifications" element={<NotificationsCenter/>} />
         <Route path="home-service-bookings" element={<HomeServiceBookings/>} />
         <Route path="home-service-bookings/create" element={<CreateHomeServiceBooking />} />
         <Route path="reviews" element={<ReviewsPage />} />
         <Route path="reviews/featured" element={<ReviewsPage featuredOnly />} />
         <Route path="contacts" element={<ContactsPage />} />
       </Route>
+      
 
       {/* ===== 404 fallback - redirect based on auth status ===== */}
       <Route

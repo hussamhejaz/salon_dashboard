@@ -1,0 +1,79 @@
+.rbc-time-gutter {
+  background: transparent;
+  border-right: 1px solid #e5e7eb;
+}
+
+.rbc-time-gutter .rbc-timeslot-group {
+  min-height: 64px;
+  border-color: #e5e7eb;
+  border-style: solid;
+  background: transparent;
+}
+
+.rbc-time-gutter .rbc-timeslot-group:nth-child(2n + 1) {
+  background: #f9fafb;
+}
+
+.rbc-time-gutter .rbc-time-slot {
+  border: none;
+}
+
+.rbc-time-gutter .rbc-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 28px;
+  padding: 4px 8px;
+  margin: 4px 0;
+  color: #475569;
+  font-weight: 600;
+  font-size: 12px;
+  background: transparent;
+  text-align: center;
+}
+
+.rbc-time-gutter .rbc-label.rbc-past-hour {
+  color: rgba(71, 85, 105, 0.6);
+}
+
+.rbc-time-gutter .rbc-label.rbc-current-hour {
+  position: relative;
+  color: #e39b34;
+}
+
+.rbc-time-gutter .rbc-label.rbc-current-hour::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 12px;
+  width: 6px;
+  height: 6px;
+  background: #e39b34;
+  border-radius: 9999px;
+  box-shadow: 0 0 0 4px rgba(227, 155, 52, 0.18);
+}
+
+.rbc-time-content {
+  border-top: 1px solid #e5e7eb;
+}
+
+.rbc-time-slot {
+  border-top: 1px solid #e5e7eb;
+}
+
+.rbc-day-slot .rbc-timeslot-group:nth-child(2n + 1) {
+  background: #f9fafb;
+}
+
+.rbc-day-slot .rbc-time-slot {
+  height: 18px;
+}
+
+.booking-event {
+  background: transparent;
+}
+
+.booking-event .rbc-event-content {
+  display: flex;
+  height: 100%;
+}

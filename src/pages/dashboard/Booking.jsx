@@ -1,17 +1,18 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { useBookingDashboard } from '../../hooks/owner/useBookingDashboard';
 import BookingStats from '../../components/owner/booking/BookingStats';
 import BookingFilters from '../../components/owner/booking/BookingFilters';
 import BookingGrid from '../../components/owner/booking/BookingGrid';
-import BookingDetails from '../../components/owner/booking/BookingDetails';
 import EditBookingModal from '../../components/owner/booking/EditBookingModal';
 import BookingCalendar from '../../components/calendar/BookingCalendar';
 
-const BookingControl = () => {
+const Booking = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const {
     bookings,
@@ -28,25 +29,27 @@ const BookingControl = () => {
     getTodaysBookings,
     getUpcomingBookings,
     getBookingById,
-    autoRefresh,       // 👈 جديد
-    setAutoRefresh,    // 👈 جديد
+    autoRefresh,
+    setAutoRefresh,
+    archiveBooking,
+    unarchiveBooking,
   } = useBookingDashboard();
 
-  const [bookingDetails, setBookingDetails] = useState(null);
   const [editingBooking, setEditingBooking] = useState(null);
-  const [loadingDetails, setLoadingDetails] = useState(false);
   const [viewMode, setViewMode] = useState('calendar');
 
   const handleStatusUpdate = useCallback(
     async (bookingId, newStatus) => {
       const result = await updateBooking(bookingId, { status: newStatus });
       if (result?.success) {
-        setBookingDetails(null);
         fetchBookings(pagination.page);
+        if (newStatus === 'completed') {
+          await archiveBooking(bookingId);
+        }
       }
       return result;
     },
-    [updateBooking, fetchBookings, pagination.page]
+    [updateBooking, fetchBookings, pagination.page, archiveBooking]
   );
 
   const handleDeleteBooking = useCallback(
@@ -82,20 +85,35 @@ const BookingControl = () => {
   );
 
   const handleViewDetails = useCallback(
-    async (booking) => {
-      setLoadingDetails(true);
-      try {
-        const result = await getBookingById(booking.id);
-        if (result?.success && result.booking) {
-          setBookingDetails(result.booking);
-        }
-      } catch (error) {
-        console.error('Error fetching booking details:', error);
-      } finally {
-        setLoadingDetails(false);
-      }
+    (booking) => {
+      if (!booking || !booking.id) return;
+      navigate(`/dashboard/booking/${booking.id}`);
     },
-    [getBookingById]
+    [navigate]
+  );
+
+  // Open booking detail when navigated with ?bookingId=
+  useEffect(() => {
+    const bookingId = searchParams.get('bookingId');
+    if (bookingId) {
+      navigate(`/dashboard/booking/${bookingId}`, { replace: true });
+    }
+  }, [searchParams, navigate]);
+
+  const handleArchive = useCallback(
+    async (bookingId) => {
+      await archiveBooking(bookingId);
+      setBookingDetails((prev) => (prev && prev.id === bookingId ? { ...prev, archived: true } : prev));
+    },
+    [archiveBooking]
+  );
+
+  const handleUnarchive = useCallback(
+    async (bookingId) => {
+      await unarchiveBooking(bookingId);
+      setBookingDetails((prev) => (prev && prev.id === bookingId ? { ...prev, archived: false } : prev));
+    },
+    [unarchiveBooking]
   );
 
   const paginationWindow = useMemo(() => {
@@ -164,7 +182,10 @@ const BookingControl = () => {
                 {t('bookings.subtitle', 'Manage appointments and customer bookings')}
               </h1>
               <p className="text-sm text-slate-600">
-                {t('bookings.heroDescription', "Monitor today's schedule, upcoming visits, and revenue opportunities in one workspace.")}
+                {t(
+                  'bookings.heroDescription',
+                  "Monitor today's schedule, upcoming visits, and revenue opportunities in one workspace."
+                )}
               </p>
             </div>
 
@@ -242,6 +263,8 @@ const BookingControl = () => {
                 onSelectBooking={handleViewDetails}
                 onEditBooking={handleEditBooking}
                 onDeleteBooking={handleDeleteBooking}
+                onArchiveBooking={handleArchive}
+                onUnarchiveBooking={handleUnarchive}
               />
             )}
           </div>
@@ -302,33 +325,12 @@ const BookingControl = () => {
           )}
         </div>
 
-        {bookingDetails && (
-          <BookingDetails
-            booking={bookingDetails}
-            onClose={() => setBookingDetails(null)}
-            onStatusUpdate={handleStatusUpdate}
-          />
-        )}
-
         {editingBooking && (
           <EditBookingModal booking={editingBooking} onClose={() => setEditingBooking(null)} onSave={handleSaveEdit} />
-        )}
-
-        {loadingDetails && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-            <div className="rounded-2xl border border-white/50 bg-white/90 px-6 py-4 shadow-xl backdrop-blur">
-              <div className="flex items-center gap-3">
-                <span className="inline-flex h-6 w-6 animate-spin rounded-full border-2 border-[#E39B34]/30 border-t-[#E39B34]" />
-                <span className="text-sm font-semibold text-slate-700">
-                  {t('bookings.details.loading', 'Loading details...')}
-                </span>
-              </div>
-            </div>
-          </div>
         )}
       </div>
     </div>
   );
 };
 
-export default BookingControl;
+export default Booking;

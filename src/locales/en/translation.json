@@ -312,8 +312,13 @@
   "account": "Account",
   "myProfile": "My Profile",
   "notifications": "Notifications",
-  "languageToggle": "Change Language",
-  "signout": "Sign Out"
+    "languageToggle": "Change Language",
+    "signout": "Sign Out",
+
+    "clients": "Clients",
+    "clientsList": "Clients",
+    "reports": "Reports",
+    "incomeReports": "Income Reports"
   },
 
   "contacts": {
@@ -378,7 +383,68 @@
     "badgeRevenueHint": "Stay on top of earnings",
     "badgeStaffHint": "Team members online",
     "headerSupport": "Support",
-    "headerCta": "New booking"
+    "headerCta": "New booking",
+
+    "clients": {
+      "title": "Clients",
+      "subtitle": "Manage your customers and revenue impact",
+      "helper": "Search, filter, and review client history quickly.",
+      "search": "Search by name or phone",
+      "columns": {
+        "name": "Client",
+        "phone": "Phone",
+        "email": "Email",
+        "totalBookings": "Total Bookings",
+        "totalRevenue": "Total Revenue",
+        "lastBooking": "Last Booking",
+        "actions": "Actions"
+      },
+      "empty": "No clients found",
+      "total": "Total clients",
+      "download": "Download"
+    },
+
+    "reports": {
+      "income": {
+        "title": "Income Reports",
+        "subtitle": "Track revenue performance over time",
+        "helper": "Review totals, top performers, and trends.",
+        "period": {
+          "daily": "Daily",
+          "weekly": "Weekly",
+          "monthly": "Monthly",
+          "yearly": "Yearly"
+        },
+        "presets": {
+          "title": "Quick ranges",
+          "last7": "Last 7 days",
+          "last30": "Last 30 days",
+          "last365": "Last 12 months"
+        },
+        "cards": {
+          "totalRevenue": "Total Revenue",
+          "totalHint": "All bookings",
+          "paid": "Paid Bookings",
+          "paidHint": "Settled invoices",
+          "avgTicket": "Avg Ticket",
+          "avgTicketHint": "Per booking",
+          "topService": "Top Service",
+          "na": "N/A"
+        },
+        "tables": {
+          "topClients": "Top Clients",
+          "topServices": "Top Services",
+          "rank": "#",
+          "name": "Name",
+          "service": "Service",
+          "revenue": "Revenue",
+          "bookings": "Bookings"
+        },
+        "periodLabel": "Period",
+        "empty": "No data",
+        "error": "Failed to load income report"
+      }
+    }
   },
 
   "dashboardHome": {
@@ -516,17 +582,23 @@
   "notifications": {
     "tag": "Updates",
     "title": "Notifications",
-    "subtitle": "Latest updates related to your bookings and account",
-    "empty": "No notifications yet. You will find booking updates here.",
-    "stats": {
-      "total": "Total",
-      "totalHint": "All updates",
-      "info": "Info",
-      "infoHint": "General updates",
-      "warning": "Alerts",
-      "warningHint": "Requires attention",
-      "danger": "Urgent",
-      "dangerHint": "Critical issues"
+    "subtitle": "Updates from your bookings and account",
+    "helper": "Stay on top of booking changes and alerts.",
+    "search": "Search title/message",
+    "status": {
+      "all": "All",
+      "unread": "Unread",
+      "read": "Read"
+    },
+    "columns": {
+      "title": "Title",
+      "message": "Message",
+      "createdAt": "Created",
+      "status": "Status"
+    },
+    "empty": "No notifications found",
+    "errors": {
+      "fetch": "Failed to load notifications"
     }
   },
 
@@ -673,6 +745,7 @@
     "serviceNA": "Service not available",
     "viewGrid": "Grid view",
     "viewList": "List view",
+    "page": "page",
     "lastUpdated": "Last updated",
     "createdAt": "Created at",
     "updatedAt": "Updated at",
@@ -765,7 +838,9 @@
       "startDate": "Start Date",
       "endDate": "End Date",
       "status": "Status",
-      "customer": "Customer"
+      "customer": "Customer",
+      "includeArchived": "Show archived",
+      "archivedOnly": "Archived only"
     },
     
     "table": {
@@ -808,7 +883,12 @@
       "cancelBooking": "Cancel Booking",
       "confirmBooking": "Confirm Booking",
       "markComplete": "Mark Complete",
-      "close": "Close"
+      "close": "Close",
+      "archive": "Archive",
+      "unarchive": "Unarchive"
+    },
+    "labels": {
+      "archived": "Archived"
     },
     
     "delete": {
@@ -820,6 +900,11 @@
     "empty": {
       "title": "No bookings found",
       "subtitle": "Try adjusting your filters or create a new booking."
+    },
+
+    "archive": {
+      "success": "Booking archived",
+      "unarchived": "Booking restored"
     },
     
     "pagination": {
@@ -896,7 +981,9 @@
       "bookingConflict": "This time slot is already booked. Please choose another time.",
       "fetchSlots": "Failed to load available slots",
       "noSlots": "No available slots were found for the selected date.",
-      "loadingSlots": "Looking for open slots..."
+      "loadingSlots": "Looking for open slots...",
+      "archiveFailed": "Failed to archive booking",
+      "unarchiveFailed": "Failed to unarchive booking"
     },
     "slotStrategy": {
       "text": "Slot strategy",
@@ -1480,4 +1567,4 @@
     "notFound": "Resource not found",
     "unknownError": "An unknown error occurred"
   }
-}
+  }

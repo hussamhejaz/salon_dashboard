@@ -19,7 +19,10 @@ export const useBookingDashboard = () => {
     start_date: '',
     end_date: '',
     customer_phone: '',
-    service_type: ''
+    service_type: '',
+    search: '',
+    include_archived: false,
+    archived_only: false,
   });
   
   const [pagination, setPagination] = useState({
@@ -64,9 +67,14 @@ export const useBookingDashboard = () => {
         });
 
         // نضيف الفلاتر غير الفارغة فقط
-        Object.keys(currentFilters).forEach(key => {
-          if (currentFilters[key]) {
-            queryParams.append(key, currentFilters[key]);
+        const effectiveFilters = {
+          ...currentFilters,
+          include_archived: currentFilters.archived_only ? true : currentFilters.include_archived,
+        };
+
+        Object.keys(effectiveFilters).forEach(key => {
+          if (effectiveFilters[key]) {
+            queryParams.append(key, effectiveFilters[key]);
           }
         });
 
@@ -177,6 +185,9 @@ export const useBookingDashboard = () => {
     async (bookingId) => {
       try {
         const token = localStorage.getItem('auth_token');
+        if (!bookingId) {
+          throw new Error(t('bookings.errors.notFound', 'Booking not found'));
+        }
         const response = await fetch(
           `${API_BASE}/api/owner/bookings/${bookingId}`,
           {
@@ -446,6 +457,141 @@ export const useBookingDashboard = () => {
     [fetchBookingStats, t, pushToast]
   );
 
+  // Archive booking (completed only)
+  const archiveBooking = useCallback(
+    async (bookingId) => {
+      try {
+        setSaving(true);
+        setError('');
+
+        const token = localStorage.getItem('auth_token');
+        const response = await fetch(
+          `${API_BASE}/api/owner/bookings/${bookingId}/archive`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.details ||
+              data.error ||
+              `HTTP error! status: ${response.status}`
+          );
+        }
+
+        if (data.ok) {
+          // Remove from list if archived view is hidden; otherwise update
+          setBookings(prev => {
+            if (!filtersRef.current.include_archived) {
+              return prev.filter(booking => booking.id !== bookingId);
+            }
+            return prev.map(booking => (booking.id === bookingId ? data.booking : booking));
+          });
+          await fetchBookingStats();
+          pushToast({
+            type: 'success',
+            title: t('common.success', 'Success'),
+            desc: t('bookings.archive.success', 'Booking archived'),
+          });
+          return { success: true, booking: data.booking };
+        } else {
+          throw new Error(
+            data.error ||
+              t('bookings.errors.archiveFailed', 'Failed to archive booking')
+          );
+        }
+      } catch (err) {
+        const errorMessage =
+          err.message ||
+          t('bookings.errors.archiveFailed', 'Error archiving booking');
+        setError(errorMessage);
+        pushToast({
+          type: 'error',
+          title: t('common.error', 'Error'),
+          desc: errorMessage,
+        });
+        return { success: false, error: errorMessage };
+      } finally {
+        setSaving(false);
+      }
+    },
+    [fetchBookingStats, t, pushToast]
+  );
+
+  const unarchiveBooking = useCallback(
+    async (bookingId) => {
+      try {
+        setSaving(true);
+        setError('');
+
+        const token = localStorage.getItem('auth_token');
+        const response = await fetch(
+          `${API_BASE}/api/owner/bookings/${bookingId}/unarchive`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.details ||
+              data.error ||
+              `HTTP error! status: ${response.status}`
+          );
+        }
+
+        if (data.ok) {
+          setBookings(prev => {
+            // In "archived only" view we should remove it; otherwise update entry
+            if (filtersRef.current.archived_only) {
+              return prev.filter(booking => booking.id !== bookingId);
+            }
+            return prev.map(booking => (booking.id === bookingId ? data.booking : booking));
+          });
+          await fetchBookingStats();
+          pushToast({
+            type: 'success',
+            title: t('common.success', 'Success'),
+            desc: t('bookings.archive.unarchived', 'Booking restored'),
+          });
+          return { success: true, booking: data.booking };
+        } else {
+          throw new Error(
+            data.error ||
+              t('bookings.errors.unarchiveFailed', 'Failed to unarchive booking')
+          );
+        }
+      } catch (err) {
+        const errorMessage =
+          err.message ||
+          t('bookings.errors.unarchiveFailed', 'Error unarchiving booking');
+        setError(errorMessage);
+        pushToast({
+          type: 'error',
+          title: t('common.error', 'Error'),
+          desc: errorMessage,
+        });
+        return { success: false, error: errorMessage };
+      } finally {
+        setSaving(false);
+      }
+    },
+    [fetchBookingStats, t, pushToast]
+  );
+
   // Cancel booking (for backward compatibility)
   const cancelBooking = useCallback(
     async (bookingId) => {
@@ -517,7 +663,10 @@ export const useBookingDashboard = () => {
       start_date: '',
       end_date: '',
       customer_phone: '',
-      service_type: ''
+      service_type: '',
+      search: '',
+      include_archived: false,
+      archived_only: false,
     });
   }, []);
 
@@ -536,9 +685,13 @@ export const useBookingDashboard = () => {
 
   const completeBooking = useCallback(
     async (bookingId) => {
-      return await updateBooking(bookingId, { status: 'completed' });
+      const result = await updateBooking(bookingId, { status: 'completed' });
+      if (result?.success) {
+        await archiveBooking(bookingId);
+      }
+      return result;
     },
-    [updateBooking]
+    [updateBooking, archiveBooking]
   );
 
   const markAsNoShow = useCallback(
@@ -630,6 +783,8 @@ export const useBookingDashboard = () => {
     updateBooking,
     deleteBooking,
     cancelBooking,
+    archiveBooking,
+    unarchiveBooking,
     getAvailability,
     
     // Filter management

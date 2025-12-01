@@ -4,9 +4,10 @@ import { API_BASE } from '../../config/api';
 // Helper function to get the owner token
 const getOwnerToken = () => {
   // Check for different possible token storage keys
-  const token = localStorage.getItem('ownerToken') || 
+  const token = localStorage.getItem('ownerToken') ||
                localStorage.getItem('token') ||
                localStorage.getItem('authToken') ||
+               localStorage.getItem('auth_token') || // align with booking dashboard token
                localStorage.getItem('salonToken');
   
   console.log('🔐 [AUTH] Token found:', token ? 'YES' : 'NO');

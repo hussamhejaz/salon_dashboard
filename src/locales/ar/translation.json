@@ -45,7 +45,7 @@
     "title": "قائمة الأسعار",
     "note": "الأسعار شاملة ضريبة القيمة المضافة",
     "searchPlaceholder": "بحث عن الخدمات",
-    "sampleItem": "خدمة تجريبية — 100 ر.س",
+    "sampleItem": "خدمة تجريبية — 100 ",
     "categories": {
       "hair": "قسم قص الشعر",
       "nails": "قسم الأظافر",
@@ -326,7 +326,12 @@
     "myProfile": "ملفي الشخصي",
     "notifications": "الإشعارات",
     "languageToggle": "تغيير اللغة",
-    "signout": "تسجيل الخروج"
+    "signout": "تسجيل الخروج",
+
+    "clients": "العملاء",
+    "clientsList": "قائمة العملاء",
+    "reports": "التقارير",
+    "incomeReports": "تقرير الدخل"
   },
 
   "contacts": {
@@ -391,7 +396,68 @@
     "badgeRevenueHint": "راقب نسبة الأرباح",
     "badgeStaffHint": "أعضاء الفريق المتصلون",
     "headerSupport": "الدعم الفني",
-    "headerCta": "حجز جديد"
+    "headerCta": "حجز جديد",
+
+    "clients": {
+      "title": "العملاء",
+      "subtitle": "إدارة العملاء وتأثيرهم على الإيرادات",
+      "helper": "ابحثي، صنفي، وراجعي تاريخ العميل بسرعة.",
+      "search": "بحث بالاسم أو الهاتف",
+      "columns": {
+        "name": "العميل",
+        "phone": "الهاتف",
+        "email": "البريد الإلكتروني",
+        "totalBookings": "إجمالي الحجوزات",
+        "totalRevenue": "إجمالي الإيرادات",
+        "lastBooking": "آخر حجز",
+        "actions": ""
+      },
+      "empty": "لا يوجد عملاء",
+      "total": "إجمالي العملاء",
+      "download": "تنزيل"
+    },
+
+    "reports": {
+      "income": {
+        "title": "تقرير الدخل",
+        "subtitle": "تتبع أداء الإيرادات عبر الوقت",
+        "helper": "راجع الإجماليات، أفضل العملاء، وأبرز الاتجاهات.",
+        "period": {
+          "daily": "يومي",
+          "weekly": "أسبوعي",
+          "monthly": "شهري",
+          "yearly": "سنوي"
+        },
+        "presets": {
+          "title": "نطاقات سريعة",
+          "last7": "آخر ٧ أيام",
+          "last30": "آخر ٣٠ يوم",
+          "last365": "آخر ١٢ شهر"
+        },
+        "cards": {
+          "totalRevenue": "إجمالي الإيرادات",
+          "totalHint": "كل الحجوزات",
+          "paid": "الحجوزات المدفوعة",
+          "paidHint": "فواتير مسددة",
+          "avgTicket": "متوسط الفاتورة",
+          "avgTicketHint": "لكل حجز",
+          "topService": "أفضل خدمة",
+          "na": "غير متوفر"
+        },
+        "tables": {
+          "topClients": "أفضل العملاء",
+          "topServices": "أفضل الخدمات",
+          "rank": "#",
+          "name": "الاسم",
+          "service": "الخدمة",
+          "revenue": "الإيراد",
+          "bookings": "الحجوزات"
+        },
+        "periodLabel": "الفترة",
+        "empty": "لا توجد بيانات",
+        "error": "فشل في تحميل تقرير الدخل"
+      }
+    }
   },
 
   "dashboardHome": {
@@ -529,17 +595,23 @@
   "notifications": {
     "tag": "المستجدات",
     "title": "الإشعارات",
-    "subtitle": "أحدث التنبيهات المتعلقة بالحجوزات وحسابك",
-    "empty": "لا توجد إشعارات حالياً. ستظهر التنبيهات هنا.",
-    "stats": {
-      "total": "الإجمالي",
-      "totalHint": "كل التنبيهات",
-      "info": "معلومات",
-      "infoHint": "تحديثات عامة",
-      "warning": "تنبيهات",
-      "warningHint": "تحتاج انتباهك",
-      "danger": "عاجل",
-      "dangerHint": "مشكلات حرجة"
+    "subtitle": "تحديثات من الحجوزات وحسابك",
+    "helper": "اطلع دائماً على تغييرات الحجوزات والتنبيهات.",
+    "search": "بحث في العنوان/الرسالة",
+    "status": {
+      "all": "الكل",
+      "unread": "غير مقروء",
+      "read": "مقروء"
+    },
+    "columns": {
+      "title": "العنوان",
+      "message": "الرسالة",
+      "createdAt": "وقت الإنشاء",
+      "status": "الحالة"
+    },
+    "empty": "لا توجد إشعارات",
+    "errors": {
+      "fetch": "فشل في تحميل الإشعارات"
     }
   },
 
@@ -686,6 +758,7 @@
     "serviceNA": "الخدمة غير متاحة",
     "viewGrid": "عرض شبكي",
     "viewList": "عرض قائمة",
+    "page": "صفحة",
     "lastUpdated": "آخر تحديث",
     "createdAt": "تم الإنشاء في",
     "updatedAt": "تم التحديث في",
@@ -711,7 +784,7 @@
     "name": "الاسم",
     "total": "الإجمالي",
     "subtotal": "المجموع الفرعي",
-    "currency": "ر.س",
+    "currency": "",
     "active": "نشط",
     "inactive": "غير نشط",
     "pending": "قيد الانتظار",
@@ -785,7 +858,9 @@
       "startDate": "تاريخ البدء",
       "endDate": "تاريخ الانتهاء",
       "status": "الحالة",
-      "customer": "العميل"
+      "customer": "العميل",
+      "includeArchived": "عرض المؤرشفة",
+      "archivedOnly": "المؤرشفة فقط"
     },
     
     "table": {
@@ -828,7 +903,12 @@
       "cancelBooking": "إلغاء الحجز",
       "confirmBooking": "تأكيد الحجز",
       "markComplete": "تعيين كمكتمل",
-      "close": "إغلاق"
+      "close": "إغلاق",
+      "archive": "أرشفة",
+      "unarchive": "إلغاء الأرشفة"
+    },
+    "labels": {
+      "archived": "مؤرشف"
     },
     
     "delete": {
@@ -840,6 +920,11 @@
     "empty": {
       "title": "لم يتم العثور على حجوزات",
       "subtitle": "حاول تعديل عوامل التصفية أو إنشاء حجز جديد."
+    },
+
+    "archive": {
+      "success": "تمت أرشفة الحجز",
+      "unarchived": "تمت استعادة الحجز"
     },
     
     "pagination": {
@@ -921,7 +1006,9 @@
       "bookingConflict": "الوقت محجوز، يرجى اختيار وقت آخر.",
       "fetchSlots": "فشل في تحميل الأوقات المتاحة",
       "noSlots": "لا توجد مواعيد متاحة لهذا التاريخ.",
-      "loadingSlots": "جارٍ البحث عن الأوقات المتاحة..."
+      "loadingSlots": "جارٍ البحث عن الأوقات المتاحة...",
+      "archiveFailed": "فشل في أرشفة الحجز",
+      "unarchiveFailed": "فشل في إلغاء الأرشفة"
     },
     "slotStrategy": {
       "text": "نظام الحجز",
@@ -1258,9 +1345,9 @@
       "featured": "مميز",
       "remaining": "متبقي {{count}}",
       "validUntil": "ينتهي في",
-      "save": "وفرت {{amount}} ر.س",
+      "save": "وفرت {{amount}} ر.",
       "discount": "خصم {{percentage}}%",
-      "discountAmount": "خصم {{amount}} ر.س",
+      "discountAmount": "خصم {{amount}} ر.",
       "terms": "الشروط والأحكام",
       "bookOffer": "احجز العرض"
     },

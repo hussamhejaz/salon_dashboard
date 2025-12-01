@@ -1,5 +1,7 @@
 // src/config/api.js
-export const API_BASE = (import.meta.env.VITE_API_URL || "https://booking-backend-9s77.onrender.com").replace(/\/+$/,"");
+export const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:4000").replace(/\/+$/,"");
+
+
 
 
 

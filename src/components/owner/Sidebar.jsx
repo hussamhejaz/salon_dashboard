@@ -216,6 +216,7 @@ export default function Sidebar() {
       icon: Icon.Users,
       sub: [
         { key: "sidebar.contactInbox", path: "/dashboard/contacts" },
+        { key: "sidebar.notifications", path: "/dashboard/notifications" },
       ],
     },
     {
@@ -242,6 +243,11 @@ export default function Sidebar() {
         { key: "sidebar.pricing", path: "/dashboard/pricing" },
         { key: "sidebar.offers", path: "/dashboard/offers" },
       ],
+    },
+    {
+      key: "sidebar.clients",
+      icon: Icon.Users,
+      sub: [{ key: "sidebar.clientsList", path: "/dashboard/clients" }],
     },
     {
       key: "sidebar.reviews",

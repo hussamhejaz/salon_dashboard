@@ -36,7 +36,29 @@ const BookingFilters = ({ filters, onUpdateFilters, onClearFilters }) => {
   };
 
   const hasActiveFilters =
-    filters.status || filters.date || filters.start_date || filters.end_date || filters.search;
+    filters.status ||
+    filters.date ||
+    filters.start_date ||
+    filters.end_date ||
+    filters.search ||
+    filters.include_archived ||
+    filters.archived_only;
+
+  const toggleIncludeArchived = () => {
+    const next = !filters.include_archived;
+    onUpdateFilters({
+      include_archived: next,
+      archived_only: next ? filters.archived_only : false,
+    });
+  };
+
+  const toggleArchivedOnly = () => {
+    const next = !filters.archived_only;
+    onUpdateFilters({
+      archived_only: next,
+      include_archived: next ? true : filters.include_archived,
+    });
+  };
 
   return (
     <div className="rounded-3xl border-b border-white/60 bg-white/90 px-6 py-5 backdrop-blur">
@@ -74,6 +96,32 @@ const BookingFilters = ({ filters, onUpdateFilters, onClearFilters }) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </div>
+          </div>
+
+          <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white/80 px-3 py-2 shadow-inner">
+            <button
+              type="button"
+              onClick={toggleIncludeArchived}
+              className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition ${
+                filters.include_archived
+                  ? 'bg-[#E39B34] text-white shadow-sm shadow-[#E39B34]/30'
+                  : 'text-slate-600 hover:bg-slate-50'
+              }`}
+            >
+              {t('bookings.filters.includeArchived', 'Show archived')}
+            </button>
+            <span className="text-slate-300">|</span>
+            <button
+              type="button"
+              onClick={toggleArchivedOnly}
+              className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition ${
+                filters.archived_only
+                  ? 'bg-[#E39B34] text-white shadow-sm shadow-[#E39B34]/30'
+                  : 'text-slate-600 hover:bg-slate-50'
+              }`}
+            >
+              {t('bookings.filters.archivedOnly', 'Archived only')}
+            </button>
           </div>
 
           <button
@@ -174,6 +222,26 @@ const BookingFilters = ({ filters, onUpdateFilters, onClearFilters }) => {
                 }}
                 className="ml-1.5 rounded-full p-0.5 hover:bg-slate-100"
               >
+                <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </span>
+          )}
+          {filters.include_archived && !filters.archived_only && (
+            <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-800">
+              {t('bookings.filters.includeArchived', 'Show archived')}
+              <button onClick={toggleIncludeArchived} className="ml-1.5 rounded-full p-0.5 hover:bg-slate-200">
+                <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </span>
+          )}
+          {filters.archived_only && (
+            <span className="inline-flex items-center rounded-full bg-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-900">
+              {t('bookings.filters.archivedOnly', 'Archived only')}
+              <button onClick={toggleArchivedOnly} className="ml-1.5 rounded-full p-0.5 hover:bg-slate-300">
                 <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>

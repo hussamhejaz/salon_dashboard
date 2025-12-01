@@ -11,11 +11,19 @@ export const useNotifications = () => {
       setLoading(true);
       setError('');
       const token = localStorage.getItem('auth_token');
-      const response = await fetch(`${API_BASE}/api/owner/notifications`, {
+      const response = await fetch(`${API_BASE}/api/owner/notifications?nocache=${Date.now()}`, {
         headers: {
           Authorization: `Bearer ${token}`,
+          'Cache-Control': 'no-cache',
+          Pragma: 'no-cache',
         },
+        cache: 'no-store',
       });
+
+      if (response.status === 304) {
+        setLoading(false);
+        return;
+      }
 
       if (!response.ok) {
         throw new Error('Failed to load notifications');

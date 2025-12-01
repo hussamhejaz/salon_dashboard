@@ -4,7 +4,16 @@ import { useTranslation } from 'react-i18next';
 import ConfirmModal from '../../ui/ConfirmModal';
 import RiyalIcon from '../../RiyalIcon';
 
-const BookingGrid = ({ bookings, loading, viewMode, onSelectBooking, onEditBooking, onDeleteBooking }) => {
+const BookingGrid = ({
+  bookings,
+  loading,
+  viewMode,
+  onSelectBooking,
+  onEditBooking,
+  onDeleteBooking,
+  onArchiveBooking,
+  onUnarchiveBooking,
+}) => {
   const { t, i18n } = useTranslation();
   const [deleteModal, setDeleteModal] = useState({ open: false, booking: null });
 
@@ -54,6 +63,15 @@ const BookingGrid = ({ bookings, loading, viewMode, onSelectBooking, onEditBooki
     }
   };
 
+  const handleArchive = (booking, e) => {
+    e.stopPropagation();
+    if (booking.archived) {
+      onUnarchiveBooking && onUnarchiveBooking(booking.id);
+    } else if (booking.status === 'completed') {
+      onArchiveBooking && onArchiveBooking(booking.id);
+    }
+  };
+
   if (loading && bookings.length === 0) {
     return (
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
@@ -91,37 +109,58 @@ const BookingGrid = ({ bookings, loading, viewMode, onSelectBooking, onEditBooki
       className="group rounded-2xl border border-white/80 bg-white/90 p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
       onClick={() => onSelectBooking && onSelectBooking(booking)}
     >
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <h4 className="text-lg font-semibold text-slate-900">{booking.customer_name}</h4>
-            <span className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold ${getStatusTone(booking.status)}`}>
-              {t(`bookings.status.${booking.status}`)}
-            </span>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <h4 className="text-lg font-semibold text-slate-900">{booking.customer_name}</h4>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold ${getStatusTone(booking.status)}`}>
+                    {t(`bookings.status.${booking.status}`)}
+                  </span>
+                  {booking.archived && (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-[11px] font-semibold text-slate-700">
+                      {t('bookings.labels.archived', 'Archived')}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <p className="text-sm text-slate-500">{booking.services?.name || booking.home_services?.name}</p>
+            </div>
+            <div className="flex items-center gap-2 opacity-0 transition group-hover:opacity-100">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEditBooking && onEditBooking(booking);
+                }}
+                className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-blue-400 hover:text-blue-600"
+              >
+                {t('common.edit')}
+              </button>
+              {(booking.status === 'completed' || booking.archived) && (
+                <button
+                  onClick={(e) => handleArchive(booking, e)}
+                  className={`rounded-xl border px-3 py-1.5 text-xs font-semibold transition ${
+                    booking.archived
+                      ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:border-emerald-300'
+                      : 'border-slate-200 bg-white text-slate-600 hover:border-amber-300 hover:text-amber-700'
+                  }`}
+                >
+                  {booking.archived
+                    ? t('bookings.actions.unarchive', 'Unarchive')
+                    : t('bookings.actions.archive', 'Archive')}
+                </button>
+              )}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteClick(booking);
+                }}
+                className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-rose-400 hover:text-rose-600"
+              >
+                {t('common.delete')}
+              </button>
+            </div>
           </div>
-          <p className="text-sm text-slate-500">{booking.services?.name || booking.home_services?.name}</p>
-        </div>
-        <div className="flex items-center gap-2 opacity-0 transition group-hover:opacity-100">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onEditBooking && onEditBooking(booking);
-            }}
-            className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-blue-400 hover:text-blue-600"
-          >
-            {t('common.edit')}
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleDeleteClick(booking);
-            }}
-            className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-rose-400 hover:text-rose-600"
-          >
-            {t('common.delete')}
-          </button>
-        </div>
-      </div>
       <div className="mt-4 grid gap-4 text-sm text-slate-600 sm:grid-cols-3">
         <div className="flex items-center gap-2">
           <svg className="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -213,22 +252,36 @@ const BookingGrid = ({ bookings, loading, viewMode, onSelectBooking, onEditBooki
                 </svg>
                 {formatTime(booking.booking_time)}
               </div>
-            </div>
-            <div className="mt-5 flex items-center gap-2 border-t border-slate-100 pt-4 opacity-0 transition group-hover:opacity-100">
+          </div>
+          <div className="mt-5 flex items-center gap-2 border-t border-slate-100 pt-4 opacity-0 transition group-hover:opacity-100">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onEditBooking && onEditBooking(booking);
+              }}
+              className="flex-1 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 hover:border-blue-400 hover:text-blue-600"
+            >
+              {t('common.edit')}
+            </button>
+            {booking.status === 'completed' || booking.archived ? (
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEditBooking && onEditBooking(booking);
-                }}
-                className="flex-1 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 hover:border-blue-400 hover:text-blue-600"
+                onClick={(e) => handleArchive(booking, e)}
+                className={`flex-1 rounded-2xl border px-3 py-2 text-sm font-semibold transition ${
+                  booking.archived
+                    ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:border-emerald-300'
+                    : 'border-slate-200 bg-white text-slate-600 hover:border-amber-300 hover:text-amber-700'
+                }`}
               >
-                {t('common.edit')}
+                {booking.archived
+                  ? t('bookings.actions.unarchive', 'Unarchive')
+                  : t('bookings.actions.archive', 'Archive')}
               </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDeleteClick(booking);
-                }}
+            ) : null}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDeleteClick(booking);
+              }}
                 className="flex-1 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 hover:border-rose-400 hover:text-rose-600"
               >
                 {t('common.delete')}
