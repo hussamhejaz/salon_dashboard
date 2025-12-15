@@ -22,6 +22,7 @@ import NotificationsCenter from "./pages/dashboard/NotificationsCenter";
 import CreateHomeServiceBooking from './pages/dashboard/CreateHomeServiceBooking';
 import ReviewsPage from './pages/dashboard/ReviewsPage';
 import ContactsPage from './pages/dashboard/ContactsPage'
+import EmployeesPage from "./pages/dashboard/EmployeesPage";
 
 
 
@@ -81,6 +82,7 @@ export default function App() {
         <Route path="appointments/new" element={<CreateBooking/>} />
         <Route path="booking" element={<Booking/>} />
         <Route path="booking/:bookingId" element={<BookingDetailsPage/>} />
+        <Route path="employees" element={<EmployeesPage />} />
         <Route path="clients" element={<ClientsPage/>} />
         <Route path="notifications" element={<NotificationsCenter/>} />
         <Route path="home-service-bookings" element={<HomeServiceBookings/>} />

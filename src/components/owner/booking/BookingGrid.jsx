@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import ConfirmModal from '../../ui/ConfirmModal';
 import RiyalIcon from '../../RiyalIcon';
+import { resolveEmployeeName as resolveEmployeeNameUtil } from '../../../utils/resolveEmployeeName';
 
 const BookingGrid = ({
   bookings,
@@ -29,6 +30,9 @@ const BookingGrid = ({
   };
 
   const locale = i18n.language === 'ar' ? 'ar-SA' : 'en-US';
+
+  const getEmployeeName = (booking) =>
+    resolveEmployeeNameUtil(booking, t('employees.table.noStaff', 'No staff assigned'));
 
   const formatDate = (value) => {
     try {
@@ -121,10 +125,13 @@ const BookingGrid = ({
                     <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-[11px] font-semibold text-slate-700">
                       {t('bookings.labels.archived', 'Archived')}
                     </span>
-                  )}
-                </div>
-              </div>
+              )}
+            </div>
+          </div>
               <p className="text-sm text-slate-500">{booking.services?.name || booking.home_services?.name}</p>
+              <p className="text-xs font-semibold text-slate-700">
+                {t('bookings.table.employee', 'Employee')}: {getEmployeeName(booking)}
+              </p>
             </div>
             <div className="flex items-center gap-2 opacity-0 transition group-hover:opacity-100">
               <button
@@ -252,7 +259,10 @@ const BookingGrid = ({
                 </svg>
                 {formatTime(booking.booking_time)}
               </div>
-          </div>
+            </div>
+            <div className="mt-2 text-xs font-semibold text-slate-700">
+              {t('bookings.table.employee', 'Employee')}: {getEmployeeName(booking)}
+            </div>
           <div className="mt-5 flex items-center gap-2 border-t border-slate-100 pt-4 opacity-0 transition group-hover:opacity-100">
             <button
               onClick={(e) => {

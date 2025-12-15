@@ -67,6 +67,15 @@ const BookingTable = ({
     onEditBooking && onEditBooking(booking);
   };
 
+  const getEmployeeName = (booking) => {
+    return (
+      booking.employee_name ||
+      booking.employee?.full_name ||
+      booking.employee?.name ||
+      '—'
+    );
+  };
+
   if (loading && bookings.length === 0) {
     return (
       <div className="flex justify-center items-center py-12">
@@ -104,6 +113,9 @@ const BookingTable = ({
               </th>
               <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 uppercase tracking-wider">
                 {t('bookings.table.service', 'Service')}
+              </th>
+              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 uppercase tracking-wider">
+                {t('bookings.table.employee', 'Employee')}
               </th>
               <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 uppercase tracking-wider">
                 {t('bookings.table.dateTime', 'Date & Time')}
@@ -158,6 +170,11 @@ const BookingTable = ({
                       {booking.duration_minutes} {t('bookings.minutes', 'min')}
                     </div>
                   )}
+                </td>
+                <td className="px-6 py-4">
+                  <div className="text-sm font-semibold text-gray-900">
+                    {getEmployeeName(booking)}
+                  </div>
                 </td>
 
                 {/* Date & Time Column */}

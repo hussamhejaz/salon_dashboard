@@ -2,6 +2,7 @@
 import React, { useMemo, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import RiyalIcon from "../../components/RiyalIcon";
+import { resolveEmployeeName as resolveEmployeeNameUtil } from "../../utils/resolveEmployeeName";
 
 const STATUS_CONFIG = {
   pending: { 
@@ -267,6 +268,10 @@ export default function BookingDetailsModal({ booking, loading, onUpdateStatus, 
   const serviceDuration = booking.duration_minutes ? 
     `${booking.duration_minutes} ${t("bookings.minutes", "minutes")}` : 
     t("common.notSpecified");
+  const employeeName = resolveEmployeeNameUtil(
+    booking,
+    t("employees.table.noStaff", "No staff assigned")
+  );
 
   return (
     <div
@@ -357,6 +362,16 @@ export default function BookingDetailsModal({ booking, loading, onUpdateStatus, 
                 label={t("bookings.details.time")}
                 value={endTime ? `${formattedTime} - ${endTime}` : formattedTime}
               />
+              <InfoRow
+                icon={
+                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 7l7-4 7 4v6a8 8 0 11-14 0V7z" />
+                  </svg>
+                }
+                label={t("bookings.table.employee", "Employee")}
+                value={employeeName}
+              />
+
             </div>
           </div>
 

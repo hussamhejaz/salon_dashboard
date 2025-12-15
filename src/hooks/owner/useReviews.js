@@ -21,7 +21,7 @@ export function useOwnerReviews() {
 
   const fetchReviews = useCallback(
     async (page = 1, limit = DEFAULT_LIMIT) => {
-      if (!isAuthenticated()) {
+      if (!isAuthenticated) {
         setError("Please log in to view reviews");
         return { ok: false, error: "AUTH_REQUIRED" };
       }
@@ -80,7 +80,7 @@ export function useOwnerReviews() {
 
   const updateReview = useCallback(
     async (reviewId, updates) => {
-      if (!isAuthenticated()) {
+      if (!isAuthenticated) {
         setError("Please log in to update reviews");
         return { ok: false, error: "AUTH_REQUIRED" };
       }

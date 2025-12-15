@@ -303,6 +303,9 @@
     "newService": "إضافة خدمة",
     "categories": "الأقسام",
 
+    "employees": "الموظفون",
+    "employeeList": "قائمة الموظفين",
+
     "staff": "فريق العمل",
     "staffList": "كل الموظفات",
     "addStaff": "إضافة موظفة",
@@ -332,6 +335,79 @@
     "clientsList": "قائمة العملاء",
     "reports": "التقارير",
     "incomeReports": "تقرير الدخل"
+  },
+
+  "employees": {
+    "titleTag": "الفريق",
+    "title": "الموظفون",
+    "subtitle": "إدارة من يمكنه تنفيذ الخدمات وتحديث تعيينات الطاقم.",
+    "stats": {
+      "total": "إجمالي الموظفين",
+      "totalHint": "كل أعضاء الفريق",
+      "active": "نشط",
+      "activeHint": "يمكن تعيينه",
+      "inactive": "غير نشط",
+      "inactiveHint": "غير متاح للحجوزات"
+    },
+    "actions": {
+      "add": "إضافة موظف",
+      "activate": "تفعيل",
+      "deactivate": "إلغاء التفعيل",
+      "manageAssignments": "إدارة الطاقم",
+      "saveAssignments": "حفظ التعيينات"
+    },
+    "form": {
+      "title": "إضافة موظف",
+      "new": "موظف جديد",
+      "editing": "تعديل موظف",
+      "employee": "تعيين موظف",
+      "any": "أي موظف متاح",
+      "noAssigned": "لا يوجد طاقم معين لهذه الخدمة بعد.",
+      "fullName": "الاسم الكامل",
+      "fullNamePlaceholder": "اسم الموظف",
+      "role": "المسمى الوظيفي",
+      "rolePlaceholder": "مصفف، مساعدة...",
+      "phone": "الجوال",
+      "phonePlaceholder": "+9665...",
+      "email": "البريد الإلكتروني",
+      "emailPlaceholder": "name@email.com",
+      "active": "نشط",
+      "activeHint": "لا يمكن تعيين الموظف غير النشط للحجوزات.",
+      "services": "الخدمات التي يستطيع تنفيذها",
+      "multiSelectHint": "اختر خدمة أو أكثر",
+      "noServices": "لا توجد خدمات متاحة بعد. أضف الخدمات أولاً.",
+      "update": "تحديث الموظف",
+      "create": "إنشاء موظف"
+    },
+    "table": {
+      "title": "قائمة الموظفين",
+      "count": "{{count}} موظف",
+      "name": "الاسم",
+      "role": "الدور",
+      "contact": "التواصل",
+      "services": "الخدمات",
+      "status": "الحالة",
+      "actions": "إجراءات",
+      "noServices": "لا توجد خدمات",
+      "noStaff": "لا يوجد طاقم معين",
+      "noRole": "الدور",
+      "empty": "لا يوجد موظفون."
+    },
+    "status": {
+      "active": "نشط",
+      "inactive": "غير نشط"
+    },
+    "errors": {
+      "nameRequired": "الاسم الكامل مطلوب",
+      "fetch": "تعذر تحميل الموظفين",
+      "deleteServer": "حدث خطأ في الخادم أثناء حذف الموظف. حاول مرة أخرى.",
+      "delete": "تعذر حذف الموظف",
+      "inUse": "لا يمكن الحذف: الموظف مرتبط بحجوزات قائمة."
+    },
+    "delete": {
+      "title": "حذف الموظف؟",
+      "desc": "سيتم حذف الموظف نهائياً ولا يمكن التراجع."
+    }
   },
 
   "contacts": {

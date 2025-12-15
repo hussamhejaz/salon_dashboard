@@ -15,6 +15,8 @@ const CreateSalonBooking = () => {
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [slotsError, setSlotsError] = useState("");
   const [slotStrategy, setSlotStrategy] = useState("");
+  const [serviceEmployees, setServiceEmployees] = useState([]);
+  const [employeesLoading, setEmployeesLoading] = useState(false);
   
   const [formData, setFormData] = useState({
     customer_name: '',
@@ -24,9 +26,10 @@ const CreateSalonBooking = () => {
     booking_date: '',
     booking_time: '',
     service_id: '',
+    employee_id: '',
     duration_minutes: 30,
     total_price: '',
-    status: 'confirmed'
+    status: 'confirmed',
   });
 
   const [errors, setErrors] = useState({});
@@ -61,6 +64,48 @@ const CreateSalonBooking = () => {
   }, []);
 
   useEffect(() => {
+    const fetchServiceEmployees = async () => {
+      if (!formData.service_id) {
+        setServiceEmployees([]);
+        setFormData((prev) => ({ ...prev, employee_id: '' }));
+        return;
+      }
+      setEmployeesLoading(true);
+      try {
+        const token = localStorage.getItem('auth_token');
+        const res = await fetch(`${API_BASE}/api/owner/employees/by-service/${formData.service_id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        const data = await res.json();
+        if (res.ok) {
+          setServiceEmployees(data.employees || []);
+          setFormData((prev) => {
+            if (!prev.employee_id && (data.employees || []).length) {
+              const firstActive = (data.employees || []).find((emp) => emp.is_active);
+              return { ...prev, employee_id: firstActive?.id || '' };
+            }
+            const stillExists = (data.employees || []).some((emp) => String(emp.id) === String(prev.employee_id));
+            return stillExists ? prev : { ...prev, employee_id: '' };
+          });
+        } else {
+          setServiceEmployees([]);
+        }
+      } catch (err) {
+        console.error('Failed to load service employees', err);
+        setServiceEmployees([]);
+      } finally {
+        setEmployeesLoading(false);
+      }
+    };
+
+    fetchServiceEmployees();
+  }, [formData.service_id]);
+
+
+  useEffect(() => {
     const fetchAvailableSlots = async () => {
       if (!formData.booking_date || !formData.service_id) {
         setAvailableSlots([]);
@@ -75,10 +120,11 @@ const CreateSalonBooking = () => {
         const params = new URLSearchParams({
           date: formData.booking_date,
           service_id: formData.service_id,
-          duration_minutes: `${formData.duration_minutes || 30}`,
-          type: 'salon',
         });
-        const response = await fetch(`${API_BASE}/api/owner/availability/slots?${params.toString()}`, {
+        if (formData.employee_id) {
+          params.append('employee_id', formData.employee_id);
+        }
+        const response = await fetch(`${API_BASE}/api/owner/bookings/calendar/availability?${params.toString()}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
           },
@@ -111,12 +157,12 @@ const CreateSalonBooking = () => {
     };
 
     fetchAvailableSlots();
-  }, [formData.booking_date, formData.service_id, formData.duration_minutes, t]);
+  }, [formData.booking_date, formData.service_id, formData.duration_minutes, formData.employee_id, t]);
 
   // Update price and duration when service is selected
   useEffect(() => {
     if (formData.service_id) {
-      const selectedService = services.find(s => s.id === formData.service_id);
+      const selectedService = services.find((s) => String(s.id) === String(formData.service_id));
       if (selectedService) {
         setFormData(prev => ({
           ...prev,
@@ -173,12 +219,13 @@ const CreateSalonBooking = () => {
       customer_phone: formData.customer_phone.trim(),
       customer_email: formData.customer_email.trim(),
       customer_notes: formData.customer_notes.trim(),
-      booking_date: formData.booking_date,
+    booking_date: formData.booking_date,
       booking_time: formData.booking_time,
       service_id: formData.service_id,
+      employee_id: formData.employee_id || null,
       total_price: parseFloat(formData.total_price),
       duration_minutes: parseInt(formData.duration_minutes),
-      status: formData.status
+      status: formData.status,
     };
 
     try {
@@ -228,7 +275,7 @@ const CreateSalonBooking = () => {
     }).format(amount);
   };
 
-  const selectedService = services.find((s) => s.id === formData.service_id);
+  const selectedService = services.find((s) => String(s.id) === String(formData.service_id));
 
   const heroHighlights = [
     {
@@ -446,7 +493,7 @@ const CreateSalonBooking = () => {
                       {t('bookings.create.chooseService', 'Choose a service...')}
                     </option>
                     {services.map((service) => (
-                      <option key={service.id} value={service.id}>
+                      <option key={service.id} value={`${service.id}`}>
                         {service.name} - {formatCurrency(service.price)} ({service.duration_minutes} {t('common.minutes', 'min')})
                       </option>
                     ))}
@@ -455,6 +502,35 @@ const CreateSalonBooking = () => {
                 {errors.service_id && (
                   <p className="mt-1 text-sm text-red-600">{errors.service_id}</p>
                 )}
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('employees.form.employee', 'Assign employee')}
+                  </label>
+                  {employeesLoading ? (
+                    <div className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm text-slate-500">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#E39B34] border-t-transparent" />
+                      {t('common.loading', 'Loading...')}
+                    </div>
+                  ) : (
+                    <select
+                      value={formData.employee_id}
+                      onChange={(e) => handleChange('employee_id', e.target.value)}
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#E39B34] focus:border-transparent"
+                    >
+                      <option value="">{t('employees.form.any', 'Any available staff')}</option>
+                      {serviceEmployees.map((emp) => (
+                        <option key={emp.id} value={emp.id} disabled={!emp.is_active}>
+                          {emp.full_name} {emp.role ? `(${emp.role})` : ''} {!emp.is_active ? t('employees.status.inactive', 'Inactive') : ''}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  {!serviceEmployees.length && formData.service_id && !employeesLoading && (
+                    <p className="mt-1 text-xs text-slate-500">
+                      {t('employees.form.noAssigned', 'No staff assigned to this service yet.')}
+                    </p>
+                  )}
+                </div>
               </div>
 
               {/* Price and Duration */}

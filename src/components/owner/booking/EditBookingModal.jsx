@@ -1,6 +1,7 @@
 // src/components/ui/EditBookingModal.jsx
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { API_BASE } from '../../../config/api';
 
 const EditBookingModal = ({ booking, onClose, onSave }) => {
   const { t } = useTranslation();
@@ -14,8 +15,11 @@ const EditBookingModal = ({ booking, onClose, onSave }) => {
     booking_time: '',
     duration_minutes: '',
     total_price: '',
-    status: 'pending'
+    status: 'pending',
+    employee_id: '',
   });
+  const [serviceEmployees, setServiceEmployees] = useState([]);
+  const [employeesLoading, setEmployeesLoading] = useState(false);
 
   useEffect(() => {
     if (booking) {
@@ -28,8 +32,32 @@ const EditBookingModal = ({ booking, onClose, onSave }) => {
         booking_time: booking.booking_time || '',
         duration_minutes: booking.duration_minutes || '',
         total_price: booking.total_price || '',
-        status: booking.status || 'pending'
+        status: booking.status || 'pending',
+        employee_id: booking.employee_id || booking.employee?.id || '',
       });
+
+      const serviceId = booking.service_id || booking.services?.id;
+      if (serviceId) {
+        setEmployeesLoading(true);
+        const token = localStorage.getItem('auth_token');
+        fetch(`${API_BASE}/api/owner/employees/by-service/${serviceId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          }
+        })
+          .then((res) => res.json().then((data) => ({ ok: res.ok, data })))
+          .then(({ ok, data }) => {
+            if (ok) {
+              setServiceEmployees(data.employees || []);
+            } else {
+              setServiceEmployees([]);
+            }
+          })
+          .catch(() => setServiceEmployees([]))
+          .finally(() => setEmployeesLoading(false));
+      } else {
+        setServiceEmployees([]);
+      }
     }
   }, [booking]);
 
@@ -172,6 +200,37 @@ const EditBookingModal = ({ booking, onClose, onSave }) => {
               </div>
             </div>
 
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t('employees.form.employee', 'Assign employee')}
+              </label>
+              {employeesLoading ? (
+                <div className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm text-slate-500">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#E39B34] border-t-transparent" />
+                  {t('common.loading', 'Loading...')}
+                </div>
+              ) : (
+                <select
+                  name="employee_id"
+                  value={formData.employee_id || ''}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E39B34] focus:border-[#E39B34] transition-colors"
+                >
+                  <option value="">{t('employees.form.any', 'Any available staff')}</option>
+                  {serviceEmployees.map((emp) => (
+                    <option key={emp.id} value={emp.id} disabled={!emp.is_active}>
+                      {emp.full_name} {emp.role ? `(${emp.role})` : ''} {!emp.is_active ? t('employees.status.inactive', 'Inactive') : ''}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {!serviceEmployees.length && !employeesLoading && (
+                <p className="mt-1 text-xs text-slate-500">
+                  {t('employees.form.noAssigned', 'No staff assigned to this service yet.')}
+                </p>
+              )}
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -204,6 +263,7 @@ const EditBookingModal = ({ booking, onClose, onSave }) => {
                 />
               </div>
             </div>
+
           </div>
 
           {/* Status */}

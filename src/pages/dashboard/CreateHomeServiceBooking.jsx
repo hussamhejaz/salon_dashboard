@@ -35,7 +35,7 @@ const CreateHomeServiceBooking = () => {
     travel_fee: 0,
     total_price: '',
     status: 'confirmed',
-    special_requirements: ''
+    special_requirements: '',
   });
 
   const [errors, setErrors] = useState({});
@@ -87,6 +87,7 @@ const CreateHomeServiceBooking = () => {
       }
     }
   }, [formData.home_service_id, homeServices]);
+
 
   const validateForm = () => {
     const newErrors = {};
@@ -149,9 +150,9 @@ const CreateHomeServiceBooking = () => {
       home_service_id: formData.home_service_id,
       total_price: parseFloat(formData.total_price),
       duration_minutes: parseInt(formData.duration_minutes),
-      travel_fee: parseFloat(formData.travel_fee) || 0,
-      status: formData.status,
-      special_requirements: formData.special_requirements.trim()
+    travel_fee: parseFloat(formData.travel_fee) || 0,
+    status: formData.status,
+      special_requirements: formData.special_requirements.trim(),
     };
 
     try {
@@ -564,7 +565,7 @@ const CreateHomeServiceBooking = () => {
                       {t('homeServiceBookings.create.chooseService', 'Choose a home service...')}
                     </option>
                     {homeServices.map((service) => (
-                      <option key={service.id} value={service.id}>
+                      <option key={service.id} value={`${service.id}`}>
                         {service.name} · {formatCurrency(service.price)} ({service.duration_minutes}{' '}
                         {t('homeServices.minutes', 'min')})
                       </option>

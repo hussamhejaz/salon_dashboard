@@ -290,6 +290,9 @@
     "newService": "Add Service",
     "categories": "Categories",
 
+    "employees": "Employees",
+    "employeeList": "Employees",
+
     "staff": "Staff",
     "staffList": "Team Members",
     "addStaff": "Add Staff",
@@ -319,6 +322,79 @@
     "clientsList": "Clients",
     "reports": "Reports",
     "incomeReports": "Income Reports"
+  },
+
+  "employees": {
+    "titleTag": "Team",
+    "title": "Employees & Staff",
+    "subtitle": "Manage who can perform services, and keep staff assignments up to date.",
+    "stats": {
+      "total": "Total employees",
+      "totalHint": "Everyone on the team",
+      "active": "Active",
+      "activeHint": "Can be assigned",
+      "inactive": "Inactive",
+      "inactiveHint": "Unavailable for bookings"
+    },
+    "actions": {
+      "add": "Add employee",
+      "activate": "Activate",
+      "deactivate": "Deactivate",
+      "manageAssignments": "Manage staff",
+      "saveAssignments": "Save assignments"
+    },
+    "form": {
+      "title": "Add staff member",
+      "new": "New employee",
+      "editing": "Editing employee",
+      "employee": "Assign employee",
+      "any": "Any available staff",
+      "noAssigned": "No staff assigned to this service yet.",
+      "fullName": "Full name",
+      "fullNamePlaceholder": "Employee name",
+      "role": "Role",
+      "rolePlaceholder": "Stylist, assistant...",
+      "phone": "Phone",
+      "phonePlaceholder": "+9665...",
+      "email": "Email",
+      "emailPlaceholder": "name@email.com",
+      "active": "Active",
+      "activeHint": "Inactive staff cannot be assigned to bookings.",
+      "services": "Services they can perform",
+      "multiSelectHint": "Select one or more services",
+      "noServices": "No services available yet. Add services first.",
+      "update": "Update employee",
+      "create": "Create employee"
+    },
+    "table": {
+      "title": "Employees list",
+      "count": "{{count}} employees",
+      "name": "Name",
+      "role": "Role",
+      "contact": "Contact",
+      "services": "Services",
+      "status": "Status",
+      "actions": "Actions",
+      "noServices": "No services",
+      "noStaff": "No staff assigned",
+      "noRole": "Role",
+      "empty": "No employees found."
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "errors": {
+      "nameRequired": "Full name is required",
+      "fetch": "Failed to load employees",
+      "deleteServer": "Server error while deleting employee. Please try again.",
+      "delete": "Failed to delete employee",
+      "inUse": "Cannot delete: employee is assigned to existing bookings."
+    },
+    "delete": {
+      "title": "Delete employee?",
+      "desc": "This will remove the employee. This action cannot be undone."
+    }
   },
 
   "contacts": {

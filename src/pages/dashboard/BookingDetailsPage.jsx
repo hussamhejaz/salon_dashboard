@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { API_BASE } from '../../config/api';
 import { ToastCtx } from '../../components/ui/ToastContext';
+import { resolveEmployeeName as resolveEmployeeNameUtil } from '../../utils/resolveEmployeeName';
 
 const BookingDetailsPage = () => {
   const { t, i18n } = useTranslation();
@@ -15,6 +16,8 @@ const BookingDetailsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const resolveEmployeeName = (bk) =>
+    resolveEmployeeNameUtil(bk, t('employees.table.noStaff', 'No staff assigned'));
 
   useEffect(() => {
     const load = async () => {
@@ -86,7 +89,7 @@ const BookingDetailsPage = () => {
             updatedBooking = archiveData.booking;
           }
         } catch (err) {
-          // ignore archive errors here
+          console.warn('Failed to auto-archive booking', err);
         }
       }
       setBooking(updatedBooking);
@@ -233,6 +236,10 @@ const BookingDetailsPage = () => {
         <DetailCard
           title={t('bookings.details.service', 'Service')}
           value={booking.services?.name || booking.home_services?.name || t('common.serviceNA', 'N/A')}
+        />
+        <DetailCard
+          title={t('bookings.table.employee', 'Employee')}
+          value={resolveEmployeeName(booking)}
         />
         <DetailCard title={t('bookings.details.date', 'Date')} value={booking.booking_date} />
         <DetailCard title={t('bookings.details.time', 'Time')} value={booking.booking_time} />

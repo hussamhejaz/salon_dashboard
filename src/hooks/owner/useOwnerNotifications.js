@@ -2,6 +2,8 @@ import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { API_BASE } from '../../config/api';
 import { ToastCtx } from '../../components/ui/ToastContext';
+import { useAuth } from '../../context/AuthContext';
+import { clearOwnerAuthTokens, getOwnerAuthToken } from '../../utils/authToken';
 
 // Fetch notifications for owner with filters + pagination.
 export const useOwnerNotifications = ({
@@ -13,6 +15,7 @@ export const useOwnerNotifications = ({
 } = {}) => {
   const { t } = useTranslation();
   const { pushToast } = useContext(ToastCtx);
+  const { logout } = useAuth();
 
   const [notifications, setNotifications] = useState([]);
   const [pagination, setPagination] = useState({
@@ -28,6 +31,16 @@ export const useOwnerNotifications = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const handleUnauthorized = useCallback(
+    (message) => {
+      const fallback = t('auth.errors.unauthorized', 'Please sign in to load notifications.');
+      setError(message || fallback);
+      clearOwnerAuthTokens();
+      logout();
+    },
+    [logout, t]
+  );
+
   const fetchNotifications = useCallback(
     async (params = {}) => {
       const page = params.page ?? pagination.page;
@@ -38,9 +51,10 @@ export const useOwnerNotifications = ({
       try {
         setLoading(true);
         setError('');
-        const token = localStorage.getItem('auth_token');
+        const token = getOwnerAuthToken();
         if (!token) {
           setLoading(false);
+          handleUnauthorized(t('auth.errors.unauthorized', 'Please sign in to load notifications.'));
           return { ok: false, error: 'NO_TOKEN' };
         }
 
@@ -66,6 +80,11 @@ export const useOwnerNotifications = ({
           cache: 'no-store',
         });
 
+        if (response.status === 401) {
+          handleUnauthorized(t('auth.errors.unauthorized', 'Please sign in to load notifications.'));
+          return { ok: false, error: 'UNAUTHORIZED' };
+        }
+
         // Handle 304 (Not Modified) gracefully by keeping current data
         if (response.status === 304) {
           // Try a one-time forced fetch with an extra buster to bypass intermediary caches
@@ -82,11 +101,15 @@ export const useOwnerNotifications = ({
             },
             cache: 'no-store',
           });
+          if (forced.status === 401) {
+            handleUnauthorized(t('auth.errors.unauthorized', 'Please sign in to load notifications.'));
+            return { ok: false, error: 'UNAUTHORIZED' };
+          }
           if (forced.status === 304) {
             setFilters((prev) => ({ ...prev, status, since }));
             return;
           }
-          const forcedData = await forced.json();
+          const forcedData = await forced.json().catch(() => ({}));
           if (!forced.ok || !forcedData.ok) {
             throw new Error(
               forcedData?.error ||
@@ -105,12 +128,8 @@ export const useOwnerNotifications = ({
           return;
         }
 
-        const data = await response.json();
+        const data = await response.json().catch(() => ({}));
         if (!response.ok || !data.ok) {
-          if (response.status === 401) {
-            setLoading(false);
-            return { ok: false, error: 'UNAUTHORIZED' };
-          }
           throw new Error(
             data?.error ||
               data?.details ||
@@ -145,7 +164,7 @@ export const useOwnerNotifications = ({
         setLoading(false);
       }
     },
-    [pagination.page, pagination.limit, filters.status, filters.since, t, pushToast]
+    [pagination.page, pagination.limit, filters.status, filters.since, handleUnauthorized, t, pushToast]
   );
 
   useEffect(() => {
@@ -169,7 +188,11 @@ export const useOwnerNotifications = ({
   const markAsRead = useCallback(
     async (id) => {
       try {
-        const token = localStorage.getItem('auth_token');
+        const token = getOwnerAuthToken();
+        if (!token) {
+          handleUnauthorized();
+          return false;
+        }
         const response = await fetch(`${API_BASE}/api/owner/notifications/${id}/read?nocache=${Date.now()}`, {
           method: 'PATCH',
           headers: {
@@ -182,6 +205,9 @@ export const useOwnerNotifications = ({
         });
 
         if (!response.ok) {
+          if (response.status === 401) {
+            handleUnauthorized();
+          }
           return false;
         }
 
@@ -191,7 +217,7 @@ export const useOwnerNotifications = ({
         return false;
       }
     },
-    []
+    [handleUnauthorized]
   );
 
   const controls = useMemo(

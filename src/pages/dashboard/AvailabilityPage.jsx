@@ -23,7 +23,9 @@ function AvailabilityPage() {
       },
       {
         label: t("availability.stats.service", "Selected service"),
-        value: services.find((svc) => svc.id === selectedService)?.name || t("availability.stats.serviceHint", "Pick a service"),
+        value:
+          services.find((svc) => String(svc.id) === String(selectedService))?.name ||
+          t("availability.stats.serviceHint", "Pick a service"),
         hint: t("availability.stats.serviceSub", "Duration & price set below"),
       },
       {
@@ -71,7 +73,8 @@ function AvailabilityPage() {
 
       try {
         const token = localStorage.getItem("auth_token");
-        const duration = services.find((svc) => svc.id === selectedService)?.duration_minutes || 30;
+        const duration =
+          services.find((svc) => String(svc.id) === String(selectedService))?.duration_minutes || 30;
         const params = new URLSearchParams({
           date,
           service_id: selectedService,
@@ -126,7 +129,7 @@ function AvailabilityPage() {
               >
                 <option value="">{t("availability.field.selectService", "Select a service")}</option>
                 {services.map((service) => (
-                  <option key={service.id} value={service.id}>
+                  <option key={service.id} value={`${service.id}`}>
                     {service.name}
                   </option>
                 ))}

@@ -47,7 +47,7 @@ export const useOffers = () => {
 
   // Check if user is authenticated before making API calls
   const checkAuth = useCallback(() => {
-    if (!isAuthenticated() || !user) {
+    if (!isAuthenticated || !user) {
       setError('Please log in to manage offers');
       return false;
     }
@@ -385,7 +385,7 @@ export const useOffers = () => {
 
   // Initialize with offers and categories
   useEffect(() => {
-    if (user && isAuthenticated()) {
+    if (user && isAuthenticated) {
       fetchOffers();
       fetchOffersStats();
       fetchOfferCategories();

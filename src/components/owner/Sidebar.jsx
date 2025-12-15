@@ -227,6 +227,11 @@ export default function Sidebar() {
         { key: "sidebar.categories", path: "/dashboard/services/categories" },
       ],
     },
+    {
+      key: "sidebar.employees",
+      icon: Icon.Users,
+      sub: [{ key: "sidebar.employeeList", path: "/dashboard/employees" }],
+    },
     // {
     //   key: "sidebar.staff",
     //   icon: Icon.Users,

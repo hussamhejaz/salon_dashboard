@@ -5,6 +5,7 @@ import { useToast } from "../../components/ui/useToast";
 import DashboardHeroHeader from "../../components/dashboard/DashboardHeroHeader";
 import RiyalIcon from "../../components/RiyalIcon";
 import { formInputClass } from "../../utils/uiClasses";
+import { useEmployees } from "../../hooks/owner/useEmployees";
 
 export default function PricingPage() {
   const { t, i18n } = useTranslation();
@@ -35,6 +36,22 @@ export default function PricingPage() {
     is_active: true,
   });
   const [slotsError, setSlotsError] = useState("");
+  const [assignmentSaving, setAssignmentSaving] = useState(false);
+  const [assignmentModal, setAssignmentModal] = useState({
+    open: false,
+    service: null,
+    selected: [],
+    loading: false,
+  });
+
+  const {
+    employees,
+    serviceAssignments,
+    fetchEmployees: refreshEmployees,
+    fetchEmployeesForService,
+    saveServiceAssignments,
+    serviceEmployeesLoading,
+  } = useEmployees();
 
   const sortedSlots = useMemo(() => {
     return [...serviceSlots].sort((a, b) => a.slot_time.localeCompare(b.slot_time));
@@ -386,6 +403,44 @@ export default function PricingPage() {
     }
   }
 
+  const openAssignments = async (service) => {
+    setAssignmentModal({ open: true, service, selected: [], loading: true });
+    const list = await fetchEmployeesForService(service.id);
+    setAssignmentModal((prev) => ({
+      ...prev,
+      selected: list.map((emp) => emp.id),
+      loading: false,
+    }));
+  };
+
+  const closeAssignments = () =>
+    setAssignmentModal({ open: false, service: null, selected: [], loading: false });
+
+  const toggleAssignmentSelection = (employeeId) => {
+    setAssignmentModal((prev) => {
+      const exists = prev.selected.includes(employeeId);
+      return {
+        ...prev,
+        selected: exists
+          ? prev.selected.filter((id) => id !== employeeId)
+          : [...prev.selected, employeeId],
+      };
+    });
+  };
+
+  const handleSaveAssignments = async () => {
+    if (!assignmentModal.service) return;
+    const { service, selected } = assignmentModal;
+    try {
+      setAssignmentSaving(true);
+      await saveServiceAssignments(service.id, selected);
+      await refreshEmployees(true);
+      closeAssignments();
+    } finally {
+      setAssignmentSaving(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#faf5ef] via-white to-[#f4f7ff] flex items-center justify-center">
@@ -712,6 +767,7 @@ export default function PricingPage() {
                   const originalPrice = Number(activeOffer?.original_price ?? basePrice);
                   const shouldShowStrike =
                     Boolean(activeOffer) && originalPrice > 0 && originalPrice > displayPrice;
+                  const assignedEmployees = serviceAssignments?.[service.id] || [];
                   return (
                     <div key={service.id} className="p-6 hover:bg-white/80 transition">
                       <div className="flex items-start justify-between gap-4">
@@ -741,6 +797,25 @@ export default function PricingPage() {
                               ))}
                             </div>
                           )}
+                          <div className="mt-3 flex flex-wrap items-center gap-2">
+                            <span className="text-xs font-semibold uppercase tracking-[0.15em] text-slate-500">
+                              {t("employees.titleTag", "Team")}
+                            </span>
+                            {assignedEmployees.length ? (
+                              assignedEmployees.map((emp) => (
+                                <span
+                                  key={emp.id}
+                                  className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700"
+                                >
+                                  {emp.full_name || emp.name}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="text-xs text-slate-400">
+                                {t("employees.table.noStaff", "No staff assigned")}
+                              </span>
+                            )}
+                          </div>
                         </div>
                         <div className={`text-right ${i18n.dir() === "rtl" ? "text-left" : "text-right"}`}>
                           <div className="inline-flex items-center gap-1 text-2xl font-bold text-[#E39B34]">
@@ -772,6 +847,15 @@ export default function PricingPage() {
                           {t("pricing.actions.edit")}
                         </button>
                         <button
+                          onClick={() => openAssignments(service)}
+                          className="inline-flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-[#E39B34] hover:text-[#E39B34]"
+                        >
+                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                          </svg>
+                          {t("employees.actions.manageAssignments", "Manage staff")}
+                        </button>
+                        <button
                           onClick={() => deleteService(service.id)}
                           disabled={deletingService === service.id}
                           className="inline-flex items-center gap-1.5 rounded-2xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-100 disabled:opacity-50"
@@ -790,6 +874,94 @@ export default function PricingPage() {
           ))
         )}
       </div>
+
+      {assignmentModal.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-lg rounded-3xl border border-white/70 bg-white/90 p-6 shadow-2xl backdrop-blur">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                  {t("employees.actions.manageAssignments", "Manage staff")}
+                </p>
+                <h3 className="text-xl font-semibold text-slate-900">
+                  {assignmentModal.service?.name}
+                </h3>
+              </div>
+              <button
+                onClick={closeAssignments}
+                className="rounded-full border border-slate-200 bg-white p-2 text-slate-500 transition hover:bg-slate-50"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="mt-4 max-h-80 overflow-y-auto space-y-2">
+              {assignmentModal.loading || serviceEmployeesLoading ? (
+                <div className="flex items-center justify-center py-6 text-sm text-slate-500">
+                  {t("common.loading", "Loading...")}
+                </div>
+              ) : employees.length ? (
+                employees.map((emp) => {
+                  const checked = assignmentModal.selected.includes(emp.id);
+                  return (
+                    <label
+                      key={emp.id}
+                      className={`flex items-center justify-between gap-2 rounded-xl border px-3 py-2 text-sm transition ${
+                        checked
+                          ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                          : "border-slate-200 bg-white text-slate-700"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggleAssignmentSelection(emp.id)}
+                          className="h-4 w-4 rounded border-slate-300 text-[#E39B34] focus:ring-[#E39B34]"
+                        />
+                        <div>
+                          <p className="font-semibold">{emp.full_name}</p>
+                          <p className="text-xs text-slate-500">{emp.role || t("employees.table.noRole", "Role")}</p>
+                        </div>
+                      </div>
+                      <span
+                        className={`rounded-full px-2 py-1 text-[11px] font-semibold ${
+                          emp.is_active
+                            ? "bg-emerald-50 text-emerald-700"
+                            : "bg-slate-100 text-slate-500"
+                        }`}
+                      >
+                        {emp.is_active
+                          ? t("employees.status.active", "Active")
+                          : t("employees.status.inactive", "Inactive")}
+                      </span>
+                    </label>
+                  );
+                })
+              ) : (
+                <p className="text-sm text-slate-500">
+                  {t("employees.errors.fetch", "Failed to load employees")}
+                </p>
+              )}
+            </div>
+            <div className="mt-5 flex items-center justify-end gap-3">
+              <button
+                onClick={closeAssignments}
+                className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+              >
+                {t("common.cancel", "Cancel")}
+              </button>
+              <button
+                onClick={handleSaveAssignments}
+                disabled={assignmentSaving}
+                className="inline-flex items-center gap-2 rounded-2xl bg-[#E39B34] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[#E39B34]/30 transition hover:bg-[#cf8a2f] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {assignmentSaving && <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/60 border-t-white" />}
+                {t("employees.actions.saveAssignments", "Save assignments")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
