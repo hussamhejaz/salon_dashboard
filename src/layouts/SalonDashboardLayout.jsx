@@ -5,7 +5,9 @@ import { useTranslation } from "react-i18next";
 import Sidebar from "../components/owner/Sidebar";
 import { useOwnerNotifications } from "../hooks/owner/useOwnerNotifications";
 
-const SUPPORT_WHATSAPP = "https://wa.me/9665XXXXXXXXX?text=%D8%A3%D8%A8%D9%8A%20%D8%AD%D8%AC%D8%B2";
+const SUPPORT_PHONE = "+966567883842";
+const SUPPORT_MESSAGE = encodeURIComponent("TrendWa Tech - I need help");
+const SUPPORT_WHATSAPP = `https://wa.me/966567883842?text=${SUPPORT_MESSAGE}`;
 
 export default function SalonDashboardLayout() {
   const { t } = useTranslation();

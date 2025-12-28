@@ -2,34 +2,7 @@ import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import ConfirmModal from "../../ui/ConfirmModal";
 import { useToast } from "../../ui/useToast";
-
-// Map icon *keys* from DB -> emoji for UI
-const ICON_EMOJI = {
-  scissors: "✂",
-  nails: "💅",
-  makeup: "💄",
-  spa: "🧖",
-  star: "⭐",
-  facial: "✨",
-  massage: "💆",
-  waxing: "🔥",
-  hair: "👱",
-  beard: "🧔",
-  eyebrow: "👁",
-  treatment: "💊",
-};
-
-// Local safe defaults (with labels!) in case backend has none yet
-const DEFAULT_CATS = [
-  { value: "scissors", icon: "scissors", label: "Hair Services" },
-  { value: "nails", icon: "nails", label: "Nail Care" },
-  { value: "makeup", icon: "makeup", label: "Makeup" },
-  { value: "spa", icon: "spa", label: "Spa Treatments" },
-  { value: "star", icon: "star", label: "Premium Services" },
-  { value: "facial", icon: "facial", label: "Facial Care" },
-  { value: "massage", icon: "massage", label: "Massage" },
-  { value: "waxing", icon: "waxing", label: "Waxing" },
-];
+import { getCategoryPalette, normalizeCategories } from "./categoryPresets";
 
 export default function SectionRow({
   sec,
@@ -44,16 +17,7 @@ export default function SectionRow({
   const isRTL = i18n.dir() === "rtl";
 
   // Prefer backend categories (labels), fall back to defaults
-  const allCategories = useMemo(() => {
-    const haveBackend = Array.isArray(categories) && categories.length > 0;
-    const base = haveBackend ? categories : DEFAULT_CATS;
-    // normalize to {value, icon(emoji), label}
-    return base.map((c) => ({
-      value: c.value,
-      label: c.label || c.value, // never blank
-      icon: ICON_EMOJI[c.icon] || ICON_EMOJI[c.value] || c.icon || "⭐",
-    }));
-  }, [categories]);
+  const allCategories = useMemo(() => normalizeCategories(categories), [categories]);
 
   const [isEditing, setIsEditing] = useState(false);
   const [nameVal, setNameVal] = useState(sec.name || "");
@@ -68,11 +32,12 @@ export default function SectionRow({
 
   const getIconEmoji = (key) => {
     const found = allCategories.find((c) => c.value === key);
-    return found ? found.icon : "⭐";
+    return found ? found.emoji : "⭐";
   };
   const getLabel = (key) => {
     const found = allCategories.find((c) => c.value === key);
-    return found ? found.label : key;
+    const baseLabel = found ? found.label : key;
+    return t(`dashSections.form.categories.${key}`, baseLabel);
   };
 
   async function handleSave() {
@@ -131,6 +96,8 @@ export default function SectionRow({
     setFeaturesVal(Array.isArray(sec.features) ? sec.features.join("\n") : "");
   }
 
+  const palette = getCategoryPalette(isEditing ? iconKeyVal : sec.icon_key);
+
   return (
     <>
       <tr className="border-b border-white/50 hover:bg-slate-50/40 transition-colors">
@@ -145,23 +112,32 @@ export default function SectionRow({
             >
               {allCategories.map((c) => (
                 <option key={c.value} value={c.value}>
-                  {c.icon} {c.label}
+                  {c.emoji} {t(`dashSections.form.categories.${c.value}`, c.label)}
                 </option>
               ))}
             </select>
           ) : (
-            <div className="flex items-center gap-3 min-w-[180px]">
-              <div className="h-10 w-10 rounded-2xl bg-[#FEF6E8] flex items-center justify-center">
-                <span className="text-lg">{getIconEmoji(sec.icon_key)}</span>
-              </div>
-              <div className="flex flex-col max-w-[180px]">
-                <span className="font-medium text-slate-900 text-sm truncate">
-                  {getLabel(sec.icon_key)}
-                </span>
-                {/* show key but never overflow */}
-                <span className="text-xs text-slate-500 max-w-[180px] truncate">
-                  {sec.icon_key}
-                </span>
+            <div className="min-w-[200px]">
+              <div className={`relative overflow-hidden rounded-2xl border border-white/60 bg-gradient-to-r ${palette.gradient} p-3 shadow-inner shadow-slate-900/5`}>
+                <div className={`relative flex items-center gap-3 ${isRTL ? "flex-row-reverse text-right" : ""}`}>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/85 shadow-sm shadow-slate-900/10">
+                    <span className="text-lg">{getIconEmoji(sec.icon_key)}</span>
+                  </div>
+                  <div className={`flex flex-col flex-1 min-w-0 ${isRTL ? "items-end text-right" : ""}`}>
+                    <span className="font-medium text-slate-900 text-sm block truncate">
+                      {getLabel(sec.icon_key)}
+                    </span>
+                    <div className={`mt-1 flex flex-wrap items-center gap-2 text-[11px] text-slate-600/90 ${isRTL ? "justify-end" : ""}`}>
+                      <span className={`h-1.5 w-1.5 rounded-full ${palette.dot}`} />
+                      <span className="truncate uppercase tracking-wide">
+                        {t("dashSections.form.serviceCategory")}
+                      </span>
+                      <span className="rounded-full bg-white/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600">
+                        {sec.icon_key}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           )}

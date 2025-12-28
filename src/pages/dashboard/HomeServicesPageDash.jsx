@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { API_BASE } from '../../config/api';
 import { useHomeServices } from '../../hooks/owner/useHomeServices';
@@ -33,6 +33,7 @@ const HomeServicesPageDash = () => {
     price: '',
     duration_minutes: '',
     category: '',
+    travel_fee: '',
     is_active: true,
   });
   const [serviceSlots, setServiceSlots] = useState([]);
@@ -41,6 +42,20 @@ const HomeServicesPageDash = () => {
     duration_minutes: 30,
     is_active: true,
   });
+
+  const defaultCategory = useMemo(
+    () =>
+      categories.find((c) => c.is_default || c.isDefault || c.default) ||
+      categories[0] ||
+      null,
+    [categories]
+  );
+
+  useEffect(() => {
+    if (!editingService && defaultCategory && !formData.category) {
+      setFormData((prev) => ({ ...prev, category: defaultCategory.value }));
+    }
+  }, [defaultCategory, editingService, formData.category]);
 
   const resetSlots = () => {
     setServiceSlots([]);
@@ -84,6 +99,14 @@ const HomeServicesPageDash = () => {
     ];
   }, [services, t]);
 
+  const getCategoryLabel = (categoryInput) => {
+    if (!categoryInput) return null;
+    const value = typeof categoryInput === 'string' ? categoryInput : categoryInput.value || '';
+    const fallback =
+      (typeof categoryInput === 'string' ? categoryInput : categoryInput.label) || value;
+    return t(`homeServices.categoryLabels.${value}`, fallback);
+  };
+
   const resetForm = () => {
     setFormData({
       name: '',
@@ -91,6 +114,7 @@ const HomeServicesPageDash = () => {
       price: '',
       duration_minutes: '',
       category: '',
+      travel_fee: '',
       is_active: true,
     });
     resetSlots();
@@ -105,6 +129,7 @@ const HomeServicesPageDash = () => {
       name: formData.name.trim(),
       description: formData.description.trim() || null,
       price: formData.price ? parseFloat(formData.price) : null,
+      travel_fee: formData.travel_fee ? parseFloat(formData.travel_fee) : null,
       duration_minutes: formData.duration_minutes ? parseInt(formData.duration_minutes, 10) : null,
       category: formData.category || null,
       is_active: formData.is_active,
@@ -129,6 +154,7 @@ const HomeServicesPageDash = () => {
       price: service.price || '',
       duration_minutes: service.duration_minutes || '',
       category: service.category || '',
+      travel_fee: service.travel_fee ?? '',
       is_active: service.is_active,
     });
     setSlotForm({
@@ -277,7 +303,7 @@ const HomeServicesPageDash = () => {
                       <option value="">{t('homeServices.selectCategory', 'Select a category')}</option>
                       {categories.map((category) => (
                         <option key={category.value} value={category.value}>
-                          {category.label}
+                          {getCategoryLabel(category)}
                         </option>
                       ))}
                     </select>
@@ -309,6 +335,20 @@ const HomeServicesPageDash = () => {
                       value={formData.price}
                       onChange={(e) => setFormData((prev) => ({ ...prev, price: e.target.value }))}
                       className={inputClass}
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-2 block text-sm font-semibold text-slate-600">
+                      {t('homeServices.travelFee', 'Travel fee')} (SAR)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={formData.travel_fee}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, travel_fee: e.target.value }))}
+                      className={inputClass}
+                      placeholder={t('homeServices.travelFeePlaceholder', 'e.g., 25')}
                     />
                   </div>
                 </div>
@@ -478,25 +518,33 @@ const HomeServicesPageDash = () => {
                     key={service.id}
                     className="rounded-3xl border border-white/70 bg-white/85 p-5 shadow-sm shadow-slate-900/5 transition hover:-translate-y-1 hover:shadow-xl"
                   >
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h3 className="text-lg font-semibold text-slate-900">{service.name}</h3>
-                        {service.category_data && (
-                          <span className="mt-2 inline-flex rounded-full border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-500">
-                            {service.category_data.label}
+                    {(() => {
+                      // resolve display category once with translation fallback
+                      const displayCategory = getCategoryLabel(
+                        service.category_data || service.category || null
+                      );
+                      return (
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h3 className="text-lg font-semibold text-slate-900">{service.name}</h3>
+                            {displayCategory && (
+                              <span className="mt-2 inline-flex rounded-full border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-500">
+                                {displayCategory}
+                              </span>
+                            )}
+                          </div>
+                          <span
+                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                              service.is_active
+                                ? 'border border-emerald-200 bg-emerald-50 text-emerald-700'
+                                : 'border border-slate-200 bg-slate-50 text-slate-500'
+                            }`}
+                          >
+                            {service.is_active ? t('homeServices.active', 'Active') : t('homeServices.inactive', 'Inactive')}
                           </span>
-                        )}
-                      </div>
-                      <span
-                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                          service.is_active
-                            ? 'border border-emerald-200 bg-emerald-50 text-emerald-700'
-                            : 'border border-slate-200 bg-slate-50 text-slate-500'
-                        }`}
-                      >
-                        {service.is_active ? t('homeServices.active', 'Active') : t('homeServices.inactive', 'Inactive')}
-                      </span>
-                    </div>
+                        </div>
+                      );
+                    })()}
                     {service.description && (
                       <p className="mt-3 text-sm text-slate-600">{service.description}</p>
                     )}
@@ -508,6 +556,15 @@ const HomeServicesPageDash = () => {
                           {service.price}
                         </span>
                       </div>
+                      {service.travel_fee !== null && service.travel_fee !== undefined && (
+                        <div className="flex items-center justify-between">
+                          <span>{t('homeServices.travelFee', 'Travel fee')}</span>
+                          <span className="inline-flex items-center gap-1 font-semibold text-slate-900">
+                            <RiyalIcon size={16} />
+                            {service.travel_fee}
+                          </span>
+                        </div>
+                      )}
                       <div className="flex items-center justify-between">
                         <span>{t('homeServices.duration', 'Duration')}</span>
                         <span className="font-semibold text-slate-900">

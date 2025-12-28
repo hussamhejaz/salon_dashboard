@@ -1,31 +1,6 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-
-const ICON_EMOJI = {
-  scissors: "✂",
-  nails: "💅",
-  makeup: "💄",
-  spa: "🧖",
-  star: "⭐",
-  facial: "✨",
-  massage: "💆",
-  waxing: "🔥",
-  hair: "👱",
-  beard: "🧔",
-  eyebrow: "👁",
-  treatment: "💊",
-};
-
-const DEFAULT_CATS = [
-  { value: "scissors", icon: "scissors", label: "Hair Services" },
-  { value: "nails", icon: "nails", label: "Nail Care" },
-  { value: "makeup", icon: "makeup", label: "Makeup" },
-  { value: "spa", icon: "spa", label: "Spa Treatments" },
-  { value: "star", icon: "star", label: "Premium Services" },
-  { value: "facial", icon: "facial", label: "Facial Care" },
-  { value: "massage", icon: "massage", label: "Massage" },
-  { value: "waxing", icon: "waxing", label: "Waxing" },
-];
+import { getCategoryPalette, ICON_EMOJI, normalizeCategories } from "./categoryPresets";
 
 export default function SectionCreateForm({
   creating,
@@ -39,14 +14,7 @@ export default function SectionCreateForm({
   const isRTL = i18n.dir() === "rtl";
 
   // prefer backend categories (with labels), fallback to defaults
-  const allCategories = useMemo(() => {
-    const base = Array.isArray(categories) && categories.length ? categories : DEFAULT_CATS;
-    return base.map((c) => ({
-      value: c.value,
-      label: c.label || c.value,
-      icon: ICON_EMOJI[c.icon] || ICON_EMOJI[c.value] || c.icon || "⭐",
-    }));
-  }, [categories]);
+  const allCategories = useMemo(() => normalizeCategories(categories), [categories]);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -230,36 +198,60 @@ export default function SectionCreateForm({
               <div className="w-6 h-6 border-2 border-[#E39B34] border-t-transparent rounded-full animate-spin" />
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-              {allCategories.map((c) => (
-                <button
-                  key={c.value}
-                  type="button"
-                  onClick={() => handleChange("iconKey", c.value)}
-                  className={`p-3 rounded-xl border-2 transition-all duration-200 ${
-                    formData.iconKey === c.value
-                      ? "border-[#E39B34] bg-[#FEF6E8] shadow-md scale-105"
-                      : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm"
-                  } ${isRTL ? "text-right" : "text-left"}`}
-                >
-                  <div
-                    className={`flex flex-col items-center gap-2 ${
-                      formData.iconKey === c.value ? "text-[#E39B34]" : "text-slate-600"
-                    }`}
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+              {allCategories.map((c) => {
+                const selected = formData.iconKey === c.value;
+                const palette = getCategoryPalette(c.value);
+
+                return (
+                  <button
+                    key={c.value}
+                    type="button"
+                    onClick={() => handleChange("iconKey", c.value)}
+                    className={`group relative overflow-hidden rounded-2xl border transition-all duration-200 ${
+                      selected
+                        ? `border-transparent shadow-lg shadow-slate-900/10 ring-2 ${palette.ring}`
+                        : "border-slate-200 bg-white hover:-translate-y-0.5 hover:shadow-md"
+                    } ${isRTL ? "text-right" : "text-left"}`}
+                    aria-pressed={selected}
                   >
-                    <div
-                      className={`p-2 rounded-lg text-lg ${
-                        formData.iconKey === c.value ? "bg-[#E39B34] text-white" : "bg-slate-100 text-slate-600"
-                      }`}
-                    >
-                      {c.icon}
+                    <div className={`absolute inset-0 bg-gradient-to-br ${palette.gradient} ${selected ? "opacity-100" : "opacity-90"}`} />
+                    <div className={`relative flex items-center gap-3 p-4 ${isRTL ? "flex-row-reverse" : ""}`}>
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/85 shadow-inner shadow-slate-900/5">
+                        <span className="text-2xl">{c.emoji}</span>
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-slate-900 leading-tight truncate">
+                          {t(`dashSections.form.categories.${c.value}`, c.label)}
+                        </p>
+                        <div className={`mt-1 flex items-center gap-2 text-[11px] text-slate-600/90 ${isRTL ? "justify-end" : ""}`}>
+                          <span className={`h-1.5 w-1.5 rounded-full ${palette.dot}`} />
+                          <span className="truncate">
+                            {t("dashSections.stats.categoriesHint", "Organize services")}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div
+                        className={`flex h-9 w-9 items-center justify-center rounded-full border text-sm ${
+                          selected ? "bg-white/90 border-white text-[#B8751A]" : "bg-white/70 border-white/60 text-slate-500"
+                        }`}
+                      >
+                        {selected ? (
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        ) : (
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m0 0l-3-3m3 3l-3 3" />
+                          </svg>
+                        )}
+                      </div>
                     </div>
-                    <span className="text-xs font-medium text-center leading-tight max-w-[120px] truncate">
-                      {c.label}
-                    </span>
-                  </div>
-                </button>
-              ))}
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>

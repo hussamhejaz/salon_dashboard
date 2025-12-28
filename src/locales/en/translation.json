@@ -732,6 +732,8 @@
       "errorGeneric": "Failed to create section",
 
       "categories": {
+        "scissors": "Hair Services",
+        "star": "Premium Services",
         "hair": "Hair Services",
         "nails": "Nail Care",
         "makeup": "Makeup",
@@ -1330,6 +1332,18 @@
     "namePlaceholder": "e.g., Haircut at Home",
     "category": "Category",
     "selectCategory": "Select a category",
+    "categoryLabels": {
+      "scissors": "Hair Services",
+      "nails": "Nail Care",
+      "makeup": "Makeup",
+      "spa": "Spa Treatments",
+      "star": "Premium Services",
+      "facial": "Facial Care",
+      "massage": "Massage",
+      "waxing": "Waxing"
+    },
+    "travelFee": "Travel fee",
+    "travelFeePlaceholder": "e.g., 25",
     "price": "Price",
     "duration": "Duration",
     "minutes": "minutes",

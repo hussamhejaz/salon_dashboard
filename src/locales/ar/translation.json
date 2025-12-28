@@ -745,6 +745,8 @@
       "errorGeneric": "فشل في إنشاء القسم",
 
       "categories": {
+        "scissors": "خدمات الشعر",
+        "star": "الخدمات المميزة",
         "hair": "خدمات الشعر",
         "nails": "العناية بالأظافر",
         "makeup": "المكياج",
@@ -1348,6 +1350,18 @@
     "namePlaceholder": "مثال: قص شعر في المنزل",
     "category": "الفئة",
     "selectCategory": "اختر فئة",
+    "categoryLabels": {
+      "scissors": "خدمات الشعر",
+      "nails": "عناية الأظافر",
+      "makeup": "مكياج",
+      "spa": "علاجات السبا",
+      "star": "خدمات مميزة",
+      "facial": "عناية الوجه",
+      "massage": "مساج",
+      "waxing": "إزالة الشعر بالشمع"
+    },
+    "travelFee": "رسوم التنقل",
+    "travelFeePlaceholder": "مثال: 25",
     "price": "السعر",
     "duration": "المدة",
     "minutes": "دقيقة",
